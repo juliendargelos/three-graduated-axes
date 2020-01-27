@@ -11,7 +11,7 @@ Generate and manipulate x/y axes graduations and labels.
 
 #### Creating axes
 
-```typescript
+```javascript
 import { Axes } from 'three-graduated-particles'
 
 // These are the default parameters
@@ -43,6 +43,12 @@ const axes = new Axes({
   color: 0xaaaaaa, // Color of graduations (hexadecimal number, string or Color instance)
   autoRenderCSS3D: true // Tells axes to handle labels rendering themself by creating a CSS3DRenderer and syncing it with axes rendering
 })
+```
+
+Then just add the axes (which extend `Object3D`) to your threejs scene:
+
+```javascript
+scene.add(axes)
 ```
 
 #### Editing axes parameters
