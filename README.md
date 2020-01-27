@@ -75,8 +75,8 @@ This table shows which methods needs to be called to update the axes after editi
 
 #### Generate axes from dataset
 
-*Coming soon*
+*Documentation coming soon*
 
 #### Add and size objects into axes
 
-*Coming soon*
+*Documentation coming soon*
