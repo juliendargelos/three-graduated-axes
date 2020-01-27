@@ -1,0 +1,284 @@
+<!doctype html>
+<html>
+  <head>
+    <title>THREE Graduated Axes demo</title>
+
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      .canvas, .stats, .dg.main {
+        top: 0;
+        position: absolute;
+      }
+
+      .stats, .dg.main {
+        z-index: 2;
+      }
+
+      .stats {
+        left: 0;
+      }
+
+      .dg.main {
+        right: 0;
+      }
+
+      .dg.main .property-name {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="node_modules/three/build/three.js"></script>
+    <script src="node_modules/three/examples/js/controls/OrbitControls.js"></script>
+    <script src="node_modules/three/examples/js/renderers/CSS3DRenderer.js"></script>
+    <script src="node_modules/dat.gui/build/dat.gui.js"></script>
+    <script src="dist/index.umd.js"></script>
+    <script>
+      /* RENDERING */
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true
+      })
+
+      const camera = new THREE.PerspectiveCamera(45, 1, 1, 1000)
+      camera.position.set(0, 0, 26)
+
+      /* SCENE */
+
+      const scene = new THREE.Scene()
+
+      const ambientLight = new THREE.AmbientLight()
+      const pointLight = new THREE.PointLight()
+      pointLight.position.set(6, 4, 6)
+
+      const axes = new THREEGraduatedAxes.Axes({ opacity: 0.3 })
+
+      const curve = new THREE.Line()
+      let values
+
+      function generateValues(options) {
+        values = new Array(~~(Math.random() * 40) + 10).fill(null)
+
+        values.forEach((_, index) => {
+          const x = Math.random() * 50 - 25
+          const y = Math.random() * 50 - 25
+
+          values[index] = {
+            x: Math.random() > 0.5 ? ~~x : x,
+            y: Math.random() > 0.5 ? ~~y : y
+          }
+        })
+
+        values.sort(({ x: a }, { x: b }) => a - b)
+        axes.generate(values, options)
+        generateCurve()
+      }
+
+      function generateCurve() {
+        curve.geometry.setAttribute('position', new THREE.BufferAttribute(
+          new Float32Array(axes
+            .interpolate(values)
+            .reduce((vertices, { x, y }) => {
+               vertices.push(x, y, 0)
+               return vertices
+            }, [])),
+          3
+        ))
+      }
+
+      generateValues()
+
+      axes.add(curve)
+
+      scene.add(
+        ambientLight,
+        pointLight,
+        axes
+      )
+
+      /* INTERFACE */
+
+      const controls = new THREE.OrbitControls(camera, renderer.domElement)
+      controls.enableDamping = true
+      controls.dampingFactor = 0.1
+      controls.zoomSpeed = 0.5
+
+      const gui = new dat.GUI({ width: 400 })
+
+      gui.add({ generateValues }, 'generateValues').name('generate values')
+      gui.add(axes.labels, 'faceCamera').name('labels face camera')
+      gui.add(axes, 'visible')
+
+      const xGUI = gui.addFolder('x axis')
+      const yGUI = gui.addFolder('y axis')
+      const fontGUI = gui.addFolder('font')
+      const colorGUI = gui.addFolder('color')
+      const positionGUI = gui.addFolder('position')
+      const rotationGUI = gui.addFolder('rotation')
+      const scaleGUI = gui.addFolder('scale')
+
+      xGUI.open()
+      yGUI.open()
+
+      xGUI.add(axes.x, 'size').min(1).max(30).onChange(() => { axes.resize(); generateCurve() })
+      yGUI.add(axes.y, 'size').min(1).max(30).onChange(() => { axes.resize(); generateCurve() })
+
+      const xGraduationsController = xGUI.add(axes.x, 'graduations').min(0).max(3).step(0.01).onChange(() => axes.generateGraduations())
+      const yGraduationsController = yGUI.add(axes.y, 'graduations').min(0).max(3).step(0.01).onChange(() => axes.generateGraduations())
+
+      xGUI.add(axes.x, 'padding').min(0).step(0.01).max(1).onChange(() => axes.resize())
+      yGUI.add(axes.y, 'padding').min(0).step(0.01).max(1).onChange(() => axes.resize())
+
+      xGUI.add(axes.x, 'margin').min(0).step(0.01).max(1).onChange(() => axes.resizeLabels())
+      yGUI.add(axes.y, 'margin').min(0).step(0.01).max(1).onChange(() => axes.resizeLabels())
+
+      xGUI.add(axes.x, 'lineWidth').min(0.01).max(0.5).name('line width').onChange(() => axes.resizeGraduations())
+      yGUI.add(axes.y, 'lineWidth').min(0.01).max(0.5).name('line width').onChange(() => axes.resizeGraduations())
+
+      const xLabelsEditor = labelsEditor(axes.x)
+      xGUI.add(xLabelsEditor, 'labels')
+        .listen()
+        .onChange((labels) => {
+          xGraduationsController.max(labels.length ? 3 : 80)
+          xGraduationsController.updateDisplay()
+          axes.generate()
+        })
+
+      const yLabelsEditor = labelsEditor(axes.y)
+      yGUI.add(yLabelsEditor, 'labels')
+        .listen()
+        .onChange((labels) => {
+          yGraduationsController.max(labels.length ? 3 : 80)
+          yGraduationsController.updateDisplay()
+          axes.generate()
+        })
+
+      xGUI.add(axes.x, 'prefix').onChange(() => axes.generateLabels())
+      yGUI.add(axes.y, 'prefix').onChange(() => axes.generateLabels())
+
+      xGUI.add(axes.x, 'suffix').onChange(() => axes.generateLabels())
+      yGUI.add(axes.y, 'suffix').onChange(() => axes.generateLabels())
+
+      xGUI.add(axes.x, 'root').onChange(() => axes.generateGraduations())
+      yGUI.add(axes.y, 'root').onChange(() => axes.generateGraduations())
+
+      xGUI.add(axes.x, 'relative').listen().onChange(() => axes.resize())
+      yGUI.add(axes.y, 'relative').listen().onChange(() => axes.resize())
+
+      fontGUI.add(axes.labels, 'fontFamily').name('family')
+      fontGUI.add(axes.labels, 'fontSize')
+        .min(0.01)
+        .step(0.01)
+        .max(10)
+        .name('size')
+
+      colorGUI.addColor(axes.labels, 'color').name('labels')
+      colorGUI.add(axes.labels, 'opacity').min(0).max(1).step(0.01).name('labels opacity')
+      colorGUI.addColor(colorEditor(axes.color), 'color').name('graduations')
+      colorGUI.add(axes, 'opacity').min(0).max(1).step(0.01).name('graduations opacity')
+
+      positionGUI.add(axes.position, 'x').min(-5).max(5).step(0.01)
+      positionGUI.add(axes.position, 'y').min(-5).max(5).step(0.01)
+      positionGUI.add(axes.position, 'z').min(-5).max(5).step(0.01)
+      positionGUI.add({ reset() { axes.position.set(0, 0, 0) } }, 'reset')
+
+      rotationGUI.add(axes.rotation, 'x').min(-Math.PI).max(Math.PI).step(0.01)
+      rotationGUI.add(axes.rotation, 'y').min(-Math.PI).max(Math.PI).step(0.01)
+      rotationGUI.add(axes.rotation, 'z').min(-Math.PI).max(Math.PI).step(0.01)
+      rotationGUI.add({ reset() { axes.rotation.set(0, 0, 0) } }, 'reset')
+
+      scaleGUI.add(axes.scale, 'x').min(0.1).max(5).step(0.01)
+      scaleGUI.add(axes.scale, 'y').min(0.1).max(5).step(0.01)
+      scaleGUI.add(axes.scale, 'z').min(0.1).max(5).step(0.01)
+      scaleGUI.add({ reset() { axes.scale.set(1, 1, 1) } }, 'reset')
+
+      function colorEditor(color) {
+        return {
+          get color() { return color.getStyle() },
+          set color(v) { color.set(v) }
+        }
+      }
+
+      function labelsEditor(axis) {
+        return {
+          _labels: axis.labels.join(', '),
+
+          get labels() {
+            return this._labels
+          },
+
+          set labels(v) {
+            this._labels = v
+            axis.labels = v.split(',').reduce((values, value) => {
+              value = value.trim()
+              const number = parseFloat(value)
+
+              if (isNaN(number)) value && values.push(value)
+              else values.push(number)
+
+              return values
+            }, [])
+          },
+
+          update() {
+            this._labels = axis.labels.join(', ')
+          }
+        }
+      }
+
+      /* UPDATE */
+
+      function update(delta, time) {
+        controls.update()
+      }
+
+      /* RESIZE */
+
+      function resize() {
+        const { innerWidth: width, innerHeight: height } = window
+        renderer.setSize(width, height)
+        camera.aspect = width / height
+        camera.updateProjectionMatrix()
+      }
+
+      /* LOOP */
+
+      const now = (
+        typeof performance === 'undefined' ||
+        typeof navigator === 'undefined' ||
+        !navigator.userAgent.toLowerCase().includes('firefox')
+      ) ? Date.now.bind(Date) : performance.now.bind(performance)
+
+      let date, initialDate
+
+      function loop() {
+        const delta = now() - date
+        date += delta
+
+        update(delta, date - initialDate)
+        renderer.render(scene, camera)
+        requestAnimationFrame(loop)
+      }
+
+      /* DOM */
+
+      addEventListener('resize', resize)
+
+      renderer.domElement.classList.add('canvas')
+
+      document.body.appendChild(renderer.domElement)
+      document.body.appendChild(gui.domElement)
+
+      /* START */
+
+      date = initialDate = now()
+
+      resize()
+      loop()
+    </script>
+  </body>
+</html>
