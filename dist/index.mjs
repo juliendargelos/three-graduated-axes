@@ -370,7 +370,6 @@ var Graduations = /** @class */ (function (_super) {
     function Graduations() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.graduations = [];
-        _this.root = [];
         _this.container = new Box2(new Vector2(), new Vector2());
         return _this;
     }

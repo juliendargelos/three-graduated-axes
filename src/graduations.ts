@@ -3,7 +3,6 @@ import { Axis } from '~/axis'
 
 export class Graduations extends BufferGeometry {
   private graduations: number[] = []
-  private root: number[] = []
   public readonly container: Box2 = new Box2(new Vector2(), new Vector2())
 
   public generate(x: Axis, y: Axis): void {
