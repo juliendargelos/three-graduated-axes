@@ -15,7 +15,7 @@ Generate and manipulate x/y axes graduations and labels.
 import { Axes } from 'three-graduated-particles'
 
 // These are the default parameters
-const axes = new Axes({
+let axes = new Axes({
   x: {
     size: 10, // Size of the axis
     labels = [], // Array of numbers or strings to use as graduation labels
