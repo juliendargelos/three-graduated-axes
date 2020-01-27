@@ -18,16 +18,16 @@ import { Axes } from 'three-graduated-particles'
 let axes = new Axes({
   x: {
     size: 10, // Size of the axis
-    labels = [], // Array of numbers or strings to use as graduation labels
-    prefix = '', // Prefix for labels
-    suffix = '', // Suffix for labels
-    decimals = undefined, // Number of decimals to keep when rounding labels, set to undefined to disable rounding
-    graduations = 1, // Number of graduations per label. If there is no label, it will be used as the total number of graduations.
-    root = false, // Set to true to always display root graduation
-    relative = false, // Set to true to align root graduation and labels at 0
-    lineWidth = 0.02, // Line width of graduations
-    margin = 0.2, // Space between labels and graduations
-    padding = 0 // Graduation padding
+    labels: [], // Array of numbers or strings to use as graduation labels
+    prefix: '', // Prefix for labels
+    suffix: '', // Suffix for labels
+    decimals: undefined, // Number of decimals to keep when rounding labels, set to undefined to disable rounding
+    graduations: 1, // Number of graduations per label. If there is no label, it will be used as the total number of graduations.
+    root: false, // Set to true to always display root graduation
+    relative: false, // Set to true to align root graduation and labels at 0
+    lineWidth: 0.02, // Line width of graduations
+    margin: 0.2, // Space between labels and graduations
+    padding: 0 // Graduation padding
   },
   y: {
     // Same as x parameters
