@@ -231,8 +231,8 @@ var Labels = /** @class */ (function (_super) {
         var _b = _a === void 0 ? {} : _a, _c = _b.opacity, opacity = _c === void 0 ? 1 : _c, _d = _b.color, color = _d === void 0 ? '#aaaaaa' : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 0.3 : _e, _f = _b.fontFamily, fontFamily = _f === void 0 ? 'sans-serif' : _f, _g = _b.faceCamera, faceCamera = _g === void 0 ? false : _g, _h = _b.renderingScale, renderingScale = _h === void 0 ? 100 : _h;
         var _this = _super.call(this) || this;
         _this.css3DRenderer = new CSS3DRenderer();
-        _this.style = _this.css3DRenderer.domElement.style;
         _this.originalMatrix = new Matrix4();
+        _this.style = _this.css3DRenderer.domElement.style;
         _this.opacity = opacity;
         _this.color = color;
         _this.fontSize = fontSize;

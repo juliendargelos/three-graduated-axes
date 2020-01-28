@@ -10,9 +10,9 @@ export interface LabelsParameters {
 }
 export declare class Labels extends Object3D implements LabelsParameters {
     private readonly css3DRenderer;
-    private readonly style;
     private readonly originalMatrix;
     private _faceCamera;
+    readonly style: CSSStyleDeclaration;
     fontSize: number;
     renderingScale: number;
     constructor({ opacity, color, fontSize, fontFamily, faceCamera, renderingScale, }?: Partial<LabelsParameters>);

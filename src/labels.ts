@@ -14,9 +14,9 @@ export interface LabelsParameters {
 
 export class Labels extends Object3D implements LabelsParameters {
   private readonly css3DRenderer = new CSS3DRenderer()
-  private readonly style = this.css3DRenderer.domElement.style
   private readonly originalMatrix = new Matrix4()
   private _faceCamera!: boolean
+  public readonly style = this.css3DRenderer.domElement.style
   public fontSize: number
   public renderingScale: number
 
