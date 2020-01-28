@@ -92,6 +92,12 @@ export class Axes extends Mesh {
     camera: Camera
   ) => this.labels.onBeforeRender(renderer, scene, camera)
 
+  public onAfterRender = (
+    renderer: WebGLRenderer,
+    scene: Scene,
+    camera: Camera
+  ) => this.labels.onAfterRender(renderer, scene, camera)
+
   public generate(values?: ({ x: number, y: number })[], { x = {}, y = {} }: {
     x?: Partial<AxisGenerateParameters>
     y?: Partial<AxisGenerateParameters>
@@ -127,6 +133,7 @@ export class Axes extends Mesh {
   }
 
   public autoRenderCSS3D(scene: Scene): void {
+    const onAfterRender = this.onAfterRender
     const css3DRenderer = new CSS3DRenderer()
     const rendererSize = new Vector2()
 
@@ -144,6 +151,7 @@ export class Axes extends Mesh {
       renderer.getSize(rendererSize)
       css3DRenderer.setSize(rendererSize.x, rendererSize.y)
       css3DRenderer.render(scene, camera)
+      onAfterRender(renderer, scene, camera)
     }
 
     document.body.appendChild(css3DRenderer.domElement)

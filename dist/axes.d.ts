@@ -19,6 +19,7 @@ export declare class Axes extends Mesh {
     color: Color;
     opacity: number;
     onBeforeRender: (renderer: WebGLRenderer, scene: Scene, camera: Camera) => void;
+    onAfterRender: (renderer: WebGLRenderer, scene: Scene, camera: Camera) => void;
     generate(values?: ({
         x: number;
         y: number;

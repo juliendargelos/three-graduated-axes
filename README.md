@@ -37,7 +37,8 @@ let axes = new Axes({
     color: '#aaaaaa', // Color of labels (can only be a string)
     fontSize: 0.1, // Font size of labels
     fontFamily: 'sans-serif', // Font family of labels
-    faceCamera: false // Set to true to make labels looking at camera
+    faceCamera: false, // Set to true to make labels looking at camera
+    renderingScale: 100 // Scale/unscale html sizes to fix rendering issues
   },
   opacity: 1, // Opacity of graduations
   color: 0xaaaaaa, // Color of graduations (hexadecimal number, string or Color instance)
@@ -78,6 +79,8 @@ This table shows which methods needs to be called to update the axes after editi
 | `x\|y.relative` | | | × | × |
 | `x\|y.padding` | | | × | × |
 | `x\|y.margin` | | | | × |
+| `labels.fontSize` | | | | × |
+| `labels.renderingScale` | | | | × |
 
 #### Generate axes from dataset
 

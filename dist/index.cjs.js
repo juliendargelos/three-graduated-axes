@@ -235,21 +235,22 @@ var Label = /** @class */ (function (_super) {
             Math.pow(10, axis.decimals));
         this.content.textContent = "" + axis.prefix + (rounding ? Math.round(value * rounding) / rounding : value) + axis.suffix;
     };
-    Label.prototype.resize = function (axis, opposite, position) {
+    Label.prototype.resize = function (axis, opposite, position, renderingScale) {
+        if (renderingScale === void 0) { renderingScale = 10; }
         var rootPosition = (opposite.rootPosition - 0.5) * opposite.size;
         position = (position / (axis.labels.length - 1) - 0.5) * axis.size;
         var spacingX = axis.spacing.x * (opposite.relative || !axis.orientation.x);
         var spacingY = axis.spacing.y * (opposite.relative || !axis.orientation.y);
         this.content.style.transform = "translate(" + 50 * spacingX + "%, " + -50 * spacingY + "%)";
         this.position
-            .setX(axis.orientation.x * position +
+            .setX(renderingScale * (axis.orientation.x * position +
             axis.orientation.y * rootPosition +
             axis.margin * spacingX -
-            axis.padding * axis.orientation.y * !opposite.relative)
-            .setY(axis.orientation.y * position +
+            axis.padding * axis.orientation.y * !opposite.relative))
+            .setY(renderingScale * (axis.orientation.y * position +
             axis.orientation.x * rootPosition +
             axis.margin * spacingY -
-            axis.padding * axis.orientation.x * !opposite.relative);
+            axis.padding * axis.orientation.x * !opposite.relative));
     };
     return Label;
 }(CSS3DRenderer.CSS3DObject));
@@ -257,19 +258,24 @@ var Label = /** @class */ (function (_super) {
 var Labels = /** @class */ (function (_super) {
     __extends(Labels, _super);
     function Labels(_a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.opacity, opacity = _c === void 0 ? 1 : _c, _d = _b.color, color = _d === void 0 ? '#aaaaaa' : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 0.1 : _e, _f = _b.fontFamily, fontFamily = _f === void 0 ? 'sans-serif' : _f, _g = _b.faceCamera, faceCamera = _g === void 0 ? false : _g;
+        var _b = _a === void 0 ? {} : _a, _c = _b.opacity, opacity = _c === void 0 ? 1 : _c, _d = _b.color, color = _d === void 0 ? '#aaaaaa' : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 0.3 : _e, _f = _b.fontFamily, fontFamily = _f === void 0 ? 'sans-serif' : _f, _g = _b.faceCamera, faceCamera = _g === void 0 ? false : _g, _h = _b.renderingScale, renderingScale = _h === void 0 ? 100 : _h;
         var _this = _super.call(this) || this;
         _this.cssStyle = new CSSStyle().set('white-space', 'nowrap');
         _this.onBeforeRender = function (_, __, camera) {
+            camera.position.multiplyScalar(_this.renderingScale);
             _this.faceCamera && _this.children.forEach(function (label) {
                 label.lookAt(camera.position);
             });
+        };
+        _this.onAfterRender = function (_, __, camera) {
+            camera.position.divideScalar(_this.renderingScale);
         };
         _this.opacity = opacity;
         _this.color = color;
         _this.fontSize = fontSize;
         _this.fontFamily = fontFamily;
         _this.faceCamera = faceCamera;
+        _this.renderingScale = renderingScale;
         return _this;
     }
     Labels.prototype.iterate = function (x, y, callback) {
@@ -285,6 +291,9 @@ var Labels = /** @class */ (function (_super) {
         this.cssStyle.bind(label.style, 'opacity', 'color', 'visibility', 'white-space', 'transform', 'font-size', 'font-family');
         this.add(label);
         return label;
+    };
+    Labels.prototype.scaleFont = function () {
+        this.cssStyle.set('font-size', this.fontSize * this.renderingScale + "px");
     };
     Object.defineProperty(Labels.prototype, "opacity", {
         get: function () {
@@ -316,18 +325,6 @@ var Labels = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Labels.prototype, "fontSize", {
-        get: function () {
-            return Math.sqrt(parseFloat(this.cssStyle.get('font-size')) / 2);
-        },
-        set: function (fontSize) {
-            this.cssStyle
-                .set('font-size', fontSize * fontSize * 2 + "px")
-                .set('transform', "scale(" + Math.sqrt(fontSize) / 10 + ")");
-        },
-        enumerable: true,
-        configurable: true
-    });
     Object.defineProperty(Labels.prototype, "faceCamera", {
         get: function () {
             return this._faceCamera;
@@ -351,19 +348,21 @@ var Labels = /** @class */ (function (_super) {
     });
     Labels.prototype.generate = function (x, y) {
         var _this = this;
+        this.scaleFont();
         this.children
             .slice(this.iterate(x, y, function (axis, opposite, index, position, value) {
             var label = _this.children[index] || _this.addLabel();
             label.generate(axis, value);
-            label.resize(axis, opposite, position);
+            label.resize(axis, opposite, position, _this.renderingScale);
         }))
             .forEach(function (label) { return _this.remove(label); });
     };
     Labels.prototype.resize = function (x, y) {
         var _this = this;
+        this.scaleFont();
         this.iterate(x, y, function (axis, opposite, index, position) {
             var label = _this.children[index];
-            label && label.resize(axis, opposite, position);
+            label && label.resize(axis, opposite, position, _this.renderingScale);
         });
     };
     return Labels;
@@ -461,6 +460,7 @@ var Axes = /** @class */ (function (_super) {
         var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xaaaaaa : _g, _h = _b.autoRenderCSS3D, autoRenderCSS3D = _h === void 0 ? true : _h;
         var _this = _super.call(this, new Graduations()) || this;
         _this.onBeforeRender = function (renderer, scene, camera) { return _this.labels.onBeforeRender(renderer, scene, camera); };
+        _this.onAfterRender = function (renderer, scene, camera) { return _this.labels.onAfterRender(renderer, scene, camera); };
         _this.x = new Axis(__assign({}, x, { orientation: new three.Vector2(1, 0), spacing: new three.Vector2(1, -1) }));
         _this.y = new Axis(__assign({}, y, { orientation: new three.Vector2(0, 1), spacing: new three.Vector2(-1, 1) }));
         _this.graduations = _this.geometry;
@@ -538,6 +538,7 @@ var Axes = /** @class */ (function (_super) {
         this.labels.resize(this.x, this.y);
     };
     Axes.prototype.autoRenderCSS3D = function (scene) {
+        var onAfterRender = this.onAfterRender;
         var css3DRenderer = new CSS3DRenderer.CSS3DRenderer();
         var rendererSize = new three.Vector2();
         css3DRenderer.domElement.style.position = 'absolute';
@@ -549,6 +550,7 @@ var Axes = /** @class */ (function (_super) {
             renderer.getSize(rendererSize);
             css3DRenderer.setSize(rendererSize.x, rendererSize.y);
             css3DRenderer.render(scene, camera);
+            onAfterRender(renderer, scene, camera);
         };
         document.body.appendChild(css3DRenderer.domElement);
     };

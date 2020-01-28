@@ -26,7 +26,12 @@ export class Label extends CSS3DObject {
     }${axis.suffix}`
   }
 
-  public resize(axis: Axis, opposite: Axis, position: number): void {
+  public resize(
+    axis: Axis,
+    opposite: Axis,
+    position: number,
+    renderingScale: number = 10
+  ): void {
     const rootPosition = (opposite.rootPosition - 0.5) * opposite.size
     position = (position / (axis.labels.length - 1) - 0.5) * axis.size
 
@@ -45,21 +50,21 @@ export class Label extends CSS3DObject {
     }%)`
 
     this.position
-      .setX(
+      .setX(renderingScale * (
         axis.orientation.x * position +
         axis.orientation.y * rootPosition +
         axis.margin * spacingX -
         axis.padding * axis.orientation.y * (
           !opposite.relative as unknown as number
         )
-      )
-      .setY(
+      ))
+      .setY(renderingScale * (
         axis.orientation.y * position +
         axis.orientation.x * rootPosition +
         axis.margin * spacingY -
         axis.padding * axis.orientation.x * (
           !opposite.relative as unknown as number
         )
-      )
+      ))
   }
 }

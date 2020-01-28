@@ -36,6 +36,7 @@
     <script src="node_modules/three/examples/js/controls/OrbitControls.js"></script>
     <script src="node_modules/three/examples/js/renderers/CSS3DRenderer.js"></script>
     <script src="node_modules/dat.gui/build/dat.gui.js"></script>
+    <script src="node_modules/animejs/lib/anime.min.js"></script>
     <script src="dist/index.umd.js"></script>
     <script>
       /* RENDERING */
@@ -55,9 +56,16 @@
       const pointLight = new THREE.PointLight()
       pointLight.position.set(6, 4, 6)
 
-      const axes = new THREEGraduatedAxes.Axes({ opacity: 0.3 })
+      const axes = new THREEGraduatedAxes.Axes({
+        x: { size: 10, margin: 1, padding: -5 },
+        y: { size: 10, margin: 1, padding: -5 },
+        labels: { opacity: 0 },
+        opacity: 0
+      })
 
       const curve = new THREE.Line()
+      curve.material.opacity = 0
+      curve.material.transparent = true
       let values
 
       function generateValues(options) {
@@ -112,6 +120,11 @@
       gui.add({ generateValues }, 'generateValues').name('generate values')
       gui.add(axes.labels, 'faceCamera').name('labels face camera')
       gui.add(axes, 'visible')
+      gui.add(axes.labels, 'renderingScale')
+        .min(20)
+        .max(300)
+        .name('labels rendering scale')
+        .onChange(() => axes.resizeLabels())
 
       const xGUI = gui.addFolder('x axis')
       const yGUI = gui.addFolder('y axis')
@@ -229,6 +242,39 @@
           }
         }
       }
+
+      anime({
+        targets: [axes.x, axes.y],
+        duration: 2000,
+        delay: 400,
+        easing: 'easeOutExpo',
+        padding: 0,
+        update: () => axes.resizeGraduations()
+      })
+
+      anime({
+        targets: axes,
+        duration: 2000,
+        easing: 'easeOutExpo',
+        opacity: 1
+      })
+
+      anime({
+        targets: [axes.x, axes.y],
+        duration: 1000,
+        delay: 600,
+        easing: 'easeOutExpo',
+        margin: 0.1,
+        update: () => axes.resizeLabels()
+      })
+
+      anime({
+        targets: axes.labels,
+        duration: 2000,
+        delay: 600,
+        easing: 'easeOutExpo',
+        opacity: 1
+      })
 
       /* UPDATE */
 
