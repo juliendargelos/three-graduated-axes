@@ -43,7 +43,7 @@ var __assign = function() {
 
 var Axis = /** @class */ (function () {
     function Axis(_a) {
-        var orientation = _a.orientation, spacing = _a.spacing, _b = _a.size, size = _b === void 0 ? 10 : _b, _c = _a.labels, labels = _c === void 0 ? [] : _c, _d = _a.prefix, prefix = _d === void 0 ? '' : _d, _e = _a.suffix, suffix = _e === void 0 ? '' : _e, _f = _a.decimals, decimals = _f === void 0 ? undefined : _f, _g = _a.graduations, graduations = _g === void 0 ? 1 : _g, _h = _a.root, root = _h === void 0 ? false : _h, _j = _a.relative, relative = _j === void 0 ? false : _j, _k = _a.lineWidth, lineWidth = _k === void 0 ? 0.02 : _k, _l = _a.margin, margin = _l === void 0 ? 0.2 : _l, _m = _a.padding, padding = _m === void 0 ? 0 : _m;
+        var orientation = _a.orientation, spacing = _a.spacing, _b = _a.size, size = _b === void 0 ? 10 : _b, _c = _a.labels, labels = _c === void 0 ? [] : _c, _d = _a.prefix, prefix = _d === void 0 ? '' : _d, _e = _a.suffix, suffix = _e === void 0 ? '' : _e, _f = _a.decimals, decimals = _f === void 0 ? undefined : _f, _g = _a.graduations, graduations = _g === void 0 ? 1 : _g, _h = _a.root, root = _h === void 0 ? false : _h, _j = _a.relative, relative = _j === void 0 ? false : _j, _k = _a.lineWidth, lineWidth = _k === void 0 ? 0.02 : _k, _l = _a.progress, progress = _l === void 0 ? 1 : _l, _m = _a.margin, margin = _m === void 0 ? 0.2 : _m, _o = _a.padding, padding = _o === void 0 ? 0 : _o;
         this.startOffset = 0;
         this.endOffset = 0;
         this.orientation = orientation;
@@ -57,6 +57,7 @@ var Axis = /** @class */ (function () {
         this.root = root;
         this.relative = relative;
         this.lineWidth = lineWidth;
+        this.progress = progress;
         this.margin = margin;
         this.padding = padding;
     }
@@ -426,21 +427,23 @@ var Graduations = /** @class */ (function (_super) {
         var yHalfLineWidth = y.lineWidth / 2;
         var xRootPosition = xGraduations === 1 ? x.rootPosition * x.size : 0;
         var yRootPosition = yGraduations === 1 ? y.rootPosition * y.size : 0;
+        var xProgress = x.progress * 2;
+        var yProgress = y.progress * 2;
         var index = 0;
         for (var i = 0; i < xGraduations; i++) {
             var position = i * xFactor - xHalfSize + xRootPosition;
             vertices[index] = vertices[index + 9] = position - xHalfLineWidth;
             vertices[index + 3] = vertices[index + 6] = position + xHalfLineWidth;
             vertices[index + 7] = vertices[index + 10] = -yPaddedHalfSize;
-            vertices[index + 1] = vertices[index + 4] = yPaddedHalfSize;
+            vertices[index + 1] = vertices[index + 4] = (yPaddedHalfSize * xProgress - yPaddedHalfSize);
             index += 12;
         }
         for (var i = 0; i < yGraduations; i++) {
             var position = i * yFactor - yHalfSize + yRootPosition;
-            vertices[index] = vertices[index + 9] = -xPaddedHalfSize;
-            vertices[index + 3] = vertices[index + 6] = xPaddedHalfSize;
             vertices[index + 7] = vertices[index + 10] = position - yHalfLineWidth;
             vertices[index + 1] = vertices[index + 4] = position + yHalfLineWidth;
+            vertices[index] = vertices[index + 9] = -xPaddedHalfSize;
+            vertices[index + 3] = vertices[index + 6] = (xPaddedHalfSize * yProgress - xPaddedHalfSize);
             index += 12;
         }
         positionAttribute.needsUpdate = true;

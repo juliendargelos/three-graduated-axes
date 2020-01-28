@@ -26,6 +26,7 @@ let axes = new Axes({
     root: false, // Set to true to always display root graduation
     relative: false, // Set to true to align root graduation and labels at 0
     lineWidth: 0.02, // Line width of graduations
+    progress: 1, // Line drawing progress (0-1)
     margin: 0.2, // Space between labels and graduations
     padding: 0 // Graduation padding
   },
@@ -75,6 +76,7 @@ This table shows which methods needs to be called to update the axes after editi
 | `x\|y.suffix` | | × | | |
 | `x\|y.decimals` | | × | | |
 | `x\|y.lineWidth` | | | × | |
+| `x\|y.progress` | | | × | |
 | `x\|y.size` | | | × | × |
 | `x\|y.relative` | | | × | × |
 | `x\|y.padding` | | | × | × |

@@ -76,6 +76,9 @@ export class Graduations extends BufferGeometry {
     const xRootPosition = xGraduations === 1 ? x.rootPosition * x.size : 0
     const yRootPosition = yGraduations === 1 ? y.rootPosition * y.size : 0
 
+    const xProgress = x.progress * 2
+    const yProgress = y.progress * 2
+
     let index = 0
 
     for (var i = 0; i < xGraduations; i++) {
@@ -84,7 +87,9 @@ export class Graduations extends BufferGeometry {
       vertices[index    ] = vertices[index +  9] = position - xHalfLineWidth
       vertices[index + 3] = vertices[index +  6] = position + xHalfLineWidth
       vertices[index + 7] = vertices[index + 10] = -yPaddedHalfSize
-      vertices[index + 1] = vertices[index +  4] = yPaddedHalfSize
+      vertices[index + 1] = vertices[index +  4] = (
+        yPaddedHalfSize * xProgress - yPaddedHalfSize
+      )
 
       index += 12
     }
@@ -92,10 +97,12 @@ export class Graduations extends BufferGeometry {
     for (var i = 0; i < yGraduations; i++) {
       const position = i * yFactor - yHalfSize + yRootPosition
 
-      vertices[index    ] = vertices[index +  9] = -xPaddedHalfSize
-      vertices[index + 3] = vertices[index +  6] = xPaddedHalfSize
       vertices[index + 7] = vertices[index + 10] = position - yHalfLineWidth
       vertices[index + 1] = vertices[index +  4] = position + yHalfLineWidth
+      vertices[index    ] = vertices[index +  9] = -xPaddedHalfSize
+      vertices[index + 3] = vertices[index +  6] = (
+        xPaddedHalfSize * yProgress - xPaddedHalfSize
+      )
 
       index += 12
     }

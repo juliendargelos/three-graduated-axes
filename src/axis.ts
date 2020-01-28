@@ -10,6 +10,7 @@ export interface AxisParameters {
   root: boolean
   relative: boolean
   lineWidth: number
+  progress: number
   margin: number
   padding: number
 }
@@ -36,6 +37,7 @@ export class Axis implements AxisParameters {
   public graduations: number
   public root: boolean
   public lineWidth: number
+  public progress: number
   public margin: number
   public padding: number
   public rootPosition!: number
@@ -54,6 +56,7 @@ export class Axis implements AxisParameters {
     root = false,
     relative = false,
     lineWidth = 0.02,
+    progress = 1,
     margin = 0.2,
     padding = 0
   }: Partial<AxisParameters> & {
@@ -71,6 +74,7 @@ export class Axis implements AxisParameters {
     this.root = root
     this.relative = relative
     this.lineWidth = lineWidth
+    this.progress = progress
     this.margin = margin
     this.padding = padding
   }

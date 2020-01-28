@@ -9,6 +9,7 @@ export interface AxisParameters {
     root: boolean;
     relative: boolean;
     lineWidth: number;
+    progress: number;
     margin: number;
     padding: number;
 }
@@ -33,12 +34,13 @@ export declare class Axis implements AxisParameters {
     graduations: number;
     root: boolean;
     lineWidth: number;
+    progress: number;
     margin: number;
     padding: number;
     rootPosition: number;
     startOffset: number;
     endOffset: number;
-    constructor({ orientation, spacing, size, labels, prefix, suffix, decimals, graduations, root, relative, lineWidth, margin, padding }: Partial<AxisParameters> & {
+    constructor({ orientation, spacing, size, labels, prefix, suffix, decimals, graduations, root, relative, lineWidth, progress, margin, padding }: Partial<AxisParameters> & {
         orientation: Vector2;
         spacing: Vector2;
     });
