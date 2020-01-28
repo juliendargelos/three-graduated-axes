@@ -25,6 +25,7 @@ export class Axes extends Mesh {
     labels = {},
     opacity = 1,
     color = 0xaaaaaa,
+    generate = true,
     autoRenderCSS3D = true
   }: {
     x?: Partial<AxisParameters>
@@ -32,6 +33,7 @@ export class Axes extends Mesh {
     labels?: Partial<LabelsParameters>
     opacity?: number
     color?: Color | number | string
+    generate?: boolean
     autoRenderCSS3D?: boolean | Scene
   } = {}) {
     super(new Graduations())
@@ -58,7 +60,7 @@ export class Axes extends Mesh {
       : autoRenderCSS3D
     )
 
-    this.generate()
+    generate && this.generate()
   }
 
   public get visible(): boolean {

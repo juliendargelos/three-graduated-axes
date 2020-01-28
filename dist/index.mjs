@@ -456,7 +456,7 @@ var Graduations = /** @class */ (function (_super) {
 var Axes = /** @class */ (function (_super) {
     __extends(Axes, _super);
     function Axes(_a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xaaaaaa : _g, _h = _b.autoRenderCSS3D, autoRenderCSS3D = _h === void 0 ? true : _h;
+        var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xaaaaaa : _g, _h = _b.generate, generate = _h === void 0 ? true : _h, _j = _b.autoRenderCSS3D, autoRenderCSS3D = _j === void 0 ? true : _j;
         var _this = _super.call(this, new Graduations()) || this;
         _this.onBeforeRender = function (renderer, scene, camera) { return _this.labels.onBeforeRender(renderer, scene, camera); };
         _this.onAfterRender = function (renderer, scene, camera) { return _this.labels.onAfterRender(renderer, scene, camera); };
@@ -470,7 +470,7 @@ var Axes = /** @class */ (function (_super) {
         autoRenderCSS3D && _this.autoRenderCSS3D(autoRenderCSS3D === true
             ? _this
             : autoRenderCSS3D);
-        _this.generate();
+        generate && _this.generate();
         return _this;
     }
     Object.defineProperty(Axes.prototype, "visible", {

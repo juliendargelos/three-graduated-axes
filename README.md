@@ -43,6 +43,7 @@ let axes = new Axes({
   },
   opacity: 1, // Opacity of graduations
   color: 0xaaaaaa, // Color of graduations (hexadecimal number, string or Color instance)
+  generate: true, // Set to false to prevent geometry and labels from being generated at instantiation
   autoRenderCSS3D: true // Tells axes to handle labels rendering themself by creating a CSS3DRenderer and syncing it with axes rendering
 })
 ```
@@ -55,7 +56,7 @@ scene.add(axes)
 
 #### Editing axes parameters
 
-All the parameters of the `Axes` constructor (except `autoRenderCSS3D`) are editable from the instance according to the same structure (eg: `axes.x.graduations`, `axes.labels.fontSize`, ...). But you will need to regenerate or resize either the graduations or the labels (or both) depending on the parameters you edited.
+All the parameters of the `Axes` constructor (except `autoRenderCSS3D` and `generate`) are editable from the instance according to the same structure (eg: `axes.x.graduations`, `axes.labels.fontSize`, ...). But you will need to regenerate or resize either the graduations or the labels (or both) depending on the parameters you edited.
 
 To generate graduations or labels, call `axes.generateGraduations()` or `axes.generateLabels()`.
 To generate both graduations and labels, call `axes.generate()`.

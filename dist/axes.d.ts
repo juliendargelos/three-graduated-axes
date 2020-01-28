@@ -7,12 +7,13 @@ export declare class Axes extends Mesh {
     y: Axis;
     labels: Labels;
     graduations: Graduations;
-    constructor({ x, y, labels, opacity, color, autoRenderCSS3D }?: {
+    constructor({ x, y, labels, opacity, color, generate, autoRenderCSS3D }?: {
         x?: Partial<AxisParameters>;
         y?: Partial<AxisParameters>;
         labels?: Partial<LabelsParameters>;
         opacity?: number;
         color?: Color | number | string;
+        generate?: boolean;
         autoRenderCSS3D?: boolean | Scene;
     });
     visible: boolean;
