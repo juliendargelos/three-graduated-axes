@@ -28,7 +28,8 @@ let axes = new Axes({
     lineWidth: 0.02, // Line width of graduations
     progress: 1, // Line drawing progress (0-1)
     margin: 0.2, // Space between labels and graduations
-    padding: 0 // Graduation padding
+    padding: 0, // Graduation padding
+    distance: 0 // Z position of labels from graduations
   },
   y: {
     // Same as x parameters
@@ -93,6 +94,7 @@ This table shows which methods needs to be called to update the axes after editi
 | `x\|y.relative` | | | × | × |
 | `x\|y.padding` | | | × | × |
 | `x\|y.margin` | | | | × |
+| `x\|y.distance` | | | | × |
 | `labels.fontSize` | | | | × |
 | `labels.renderingScale` | | | | × |
 

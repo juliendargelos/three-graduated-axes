@@ -12,6 +12,7 @@ export interface AxisParameters {
     progress: number;
     margin: number;
     padding: number;
+    distance: number;
 }
 export interface AxisGenerateParameters {
     targetDensity: number;
@@ -37,10 +38,11 @@ export declare class Axis implements AxisParameters {
     progress: number;
     margin: number;
     padding: number;
+    distance: number;
     rootPosition: number;
     startOffset: number;
     endOffset: number;
-    constructor({ orientation, spacing, size, labels, prefix, suffix, decimals, graduations, root, relative, lineWidth, progress, margin, padding }: Partial<AxisParameters> & {
+    constructor({ orientation, spacing, size, labels, prefix, suffix, decimals, graduations, root, relative, lineWidth, progress, margin, padding, distance }: Partial<AxisParameters> & {
         orientation: Vector2;
         spacing: Vector2;
     });

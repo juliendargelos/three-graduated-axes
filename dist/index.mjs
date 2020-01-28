@@ -43,7 +43,7 @@ var __assign = function() {
 
 var Axis = /** @class */ (function () {
     function Axis(_a) {
-        var orientation = _a.orientation, spacing = _a.spacing, _b = _a.size, size = _b === void 0 ? 10 : _b, _c = _a.labels, labels = _c === void 0 ? [] : _c, _d = _a.prefix, prefix = _d === void 0 ? '' : _d, _e = _a.suffix, suffix = _e === void 0 ? '' : _e, _f = _a.decimals, decimals = _f === void 0 ? undefined : _f, _g = _a.graduations, graduations = _g === void 0 ? 1 : _g, _h = _a.root, root = _h === void 0 ? false : _h, _j = _a.relative, relative = _j === void 0 ? false : _j, _k = _a.lineWidth, lineWidth = _k === void 0 ? 0.02 : _k, _l = _a.progress, progress = _l === void 0 ? 1 : _l, _m = _a.margin, margin = _m === void 0 ? 0.2 : _m, _o = _a.padding, padding = _o === void 0 ? 0 : _o;
+        var orientation = _a.orientation, spacing = _a.spacing, _b = _a.size, size = _b === void 0 ? 10 : _b, _c = _a.labels, labels = _c === void 0 ? [] : _c, _d = _a.prefix, prefix = _d === void 0 ? '' : _d, _e = _a.suffix, suffix = _e === void 0 ? '' : _e, _f = _a.decimals, decimals = _f === void 0 ? undefined : _f, _g = _a.graduations, graduations = _g === void 0 ? 1 : _g, _h = _a.root, root = _h === void 0 ? false : _h, _j = _a.relative, relative = _j === void 0 ? false : _j, _k = _a.lineWidth, lineWidth = _k === void 0 ? 0.02 : _k, _l = _a.progress, progress = _l === void 0 ? 1 : _l, _m = _a.margin, margin = _m === void 0 ? 0.2 : _m, _o = _a.padding, padding = _o === void 0 ? 0 : _o, _p = _a.distance, distance = _p === void 0 ? 0 : _p;
         this.startOffset = 0;
         this.endOffset = 0;
         this.orientation = orientation;
@@ -60,6 +60,7 @@ var Axis = /** @class */ (function () {
         this.progress = progress;
         this.margin = margin;
         this.padding = padding;
+        this.distance = distance;
     }
     Axis.prototype.isPrime = function (number) {
         for (var i = 2, s = Math.sqrt(number); i <= s; i++) {
@@ -220,7 +221,8 @@ var Label = /** @class */ (function (_super) {
             .setY(renderingScale * (axis.orientation.y * position +
             axis.orientation.x * rootPosition +
             axis.margin * spacingY -
-            axis.padding * axis.orientation.x * (1 - oppositeRelative)));
+            axis.padding * axis.orientation.x * (1 - oppositeRelative)))
+            .setZ(axis.distance * renderingScale);
     };
     return Label;
 }(CSS3DObject));

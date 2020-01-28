@@ -13,6 +13,7 @@ export interface AxisParameters {
   progress: number
   margin: number
   padding: number
+  distance: number
 }
 
 export interface AxisGenerateParameters {
@@ -40,6 +41,7 @@ export class Axis implements AxisParameters {
   public progress: number
   public margin: number
   public padding: number
+  public distance: number
   public rootPosition!: number
   public startOffset: number = 0
   public endOffset: number = 0
@@ -58,7 +60,8 @@ export class Axis implements AxisParameters {
     lineWidth = 0.02,
     progress = 1,
     margin = 0.2,
-    padding = 0
+    padding = 0,
+    distance = 0
   }: Partial<AxisParameters> & {
     orientation: Vector2
     spacing: Vector2
@@ -77,6 +80,7 @@ export class Axis implements AxisParameters {
     this.progress = progress
     this.margin = margin
     this.padding = padding
+    this.distance = distance
   }
 
   private isPrime(number: number): boolean {

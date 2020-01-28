@@ -63,5 +63,6 @@ export class Label extends CSS3DObject {
         axis.margin * spacingY -
         axis.padding * axis.orientation.x * (1 - oppositeRelative)
       ))
+      .setZ(axis.distance * renderingScale)
   }
 }
