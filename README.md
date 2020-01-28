@@ -55,8 +55,14 @@ scene.add(axes)
 
 The labels are dom elements rendered by a CSS3DRenderer, you must manually render them in your loop:
 
-```
+```javascript
 axes.labels.render(camera)
+```
+
+You must also manually resize the labels renderer when needed:
+
+```
+axes.labels.setRendererSize(width, height)
 ```
 
 #### Editing axes parameters
