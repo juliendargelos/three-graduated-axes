@@ -12,7 +12,7 @@ Generate and manipulate x/y axes graduations and labels.
 #### Creating axes
 
 ```javascript
-import { Axes } from 'three-graduated-particles'
+import { Axes } from 'three-graduated-axes'
 
 // These are the default parameters
 let axes = new Axes({
