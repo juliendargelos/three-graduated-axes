@@ -180,7 +180,6 @@ var Axis = /** @class */ (function () {
     Axis.prototype.reset = function () {
         this.startOffset = this.endOffset = 0;
         this.labels.splice(0);
-        this.graduations = 1;
         this.root = false;
         this.relative = false;
     };
