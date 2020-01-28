@@ -1,11 +1,5 @@
-import {
-  Object3D,
-  WebGLRenderer,
-  Camera,
-  Scene,
-} from 'three'
-
-import { CSSStyle } from '~/css-style'
+import { Object3D, Camera, Scene, Matrix4 } from 'three'
+import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer'
 import { Axis } from '~/axis'
 import { Label } from '~/label'
 
@@ -19,7 +13,9 @@ export interface LabelsParameters {
 }
 
 export class Labels extends Object3D implements LabelsParameters {
-  private readonly cssStyle = new CSSStyle().set('white-space', 'nowrap')
+  private readonly css3DRenderer = new CSS3DRenderer()
+  private readonly style = this.css3DRenderer.domElement.style
+  private readonly originalMatrix = new Matrix4()
   private _faceCamera!: boolean
   public fontSize: number
   public renderingScale: number
@@ -40,6 +36,15 @@ export class Labels extends Object3D implements LabelsParameters {
     this.fontFamily = fontFamily
     this.faceCamera = faceCamera
     this.renderingScale = renderingScale
+    this.matrixAutoUpdate = false
+
+    this.style.position = 'absolute'
+    this.style.pointerEvents = 'none'
+    this.style.top =
+    this.style.left = '0'
+    this.style.zIndex = '2'
+
+    document.body.appendChild(this.css3DRenderer.domElement)
   }
 
   private iterate(x: Axis, y: Axis, callback: (
@@ -64,49 +69,32 @@ export class Labels extends Object3D implements LabelsParameters {
     }, 0)
   }
 
-  private addLabel(): Label {
-    const label = new Label()
-
-    this.cssStyle.bind(label.style,
-      'opacity',
-      'color',
-      'visibility',
-      'white-space',
-      'transform',
-      'font-size',
-      'font-family'
-    )
-
-    this.add(label)
-    return label
-  }
-
   private scaleFont(): void {
-    this.cssStyle.set('font-size', `${this.fontSize * this.renderingScale}px`)
+    this.style.fontSize = `${this.fontSize * this.renderingScale}px`
   }
 
   public get opacity(): number {
-    return parseFloat(this.cssStyle.get('opacity'))
+    return parseFloat(this.style.opacity!)
   }
 
   public set opacity(opacity: number) {
-    this.cssStyle.set('opacity', opacity as unknown as string)
+    this.style.opacity = opacity as unknown as string
   }
 
   public get color(): string {
-    return this.cssStyle.get('color')
+    return this.style.color!
   }
 
   public set color(color: string) {
-    this.cssStyle.set('color', color)
+    this.style.color = color
   }
 
   public get fontFamily(): string {
-    return this.cssStyle.get('font-family')
+    return this.style.fontFamily!
   }
 
   public set fontFamily(fontFamily: string) {
-    this.cssStyle.set('font-family', fontFamily)
+    this.style.fontFamily = fontFamily
   }
 
   public get faceCamera(): boolean {
@@ -119,25 +107,47 @@ export class Labels extends Object3D implements LabelsParameters {
   }
 
   public get visible(): boolean {
-    return this.cssStyle && this.cssStyle.get('visibility') !== 'hidden'
+    return this.style ? this.style.display !== 'none' : true
   }
 
   public set visible(visible: boolean) {
-    this.cssStyle && this.cssStyle.set('visibility',
-      visible ? 'visible' : 'hidden'
-    )
+    if (this.style) this.style.visibility = visible ? null : 'none'
   }
 
-  public onBeforeRender = (_: WebGLRenderer, __: Scene, camera: Camera) => {
+  public setRendererSize(width: number, height: number): void {
+    this.css3DRenderer.setSize(width, height)
+  }
+
+  public render(camera: Camera): void {
+    const parent = this.parent
+    const xCamera = camera.position.x
+    const yCamera = camera.position.y
+    const zCamera = camera.position.z
+
+    this.originalMatrix.copy(this.matrix)
+    this.parent = null
+
     camera.position.multiplyScalar(this.renderingScale)
+
+    this.updateWorldMatrix(true, false)
+    parent!.updateWorldMatrix(true, false)
+    this.applyMatrix(parent!.matrixWorld)
+    this.updateWorldMatrix(false, false)
 
     this.faceCamera && this.children.forEach(label => {
       label.lookAt(camera.position)
     })
-  }
 
-  public onAfterRender = (_: WebGLRenderer, __: Scene, camera: Camera) => {
-    camera.position.divideScalar(this.renderingScale)
+    this.position.multiplyScalar(this.renderingScale)
+    this.updateMatrix()
+
+    this.css3DRenderer.render(this as unknown as Scene, camera)
+
+    camera.position.set(xCamera, yCamera, zCamera)
+
+    this.parent = parent
+    this.matrix.copy(this.originalMatrix)
+    this.matrix.decompose(this.position, this.quaternion, this.scale)
   }
 
   public generate(x: Axis, y: Axis): void {
@@ -145,7 +155,8 @@ export class Labels extends Object3D implements LabelsParameters {
 
     this.children
       .slice(this.iterate(x, y, (axis, opposite, index, position, value) => {
-        const label = (this.children[index] as Label) || this.addLabel()
+        let label = this.children[index] as Label
+        label || this.add(label = new Label())
         label.generate(axis, value)
         label.resize(axis, opposite, position, this.renderingScale)
       }))

@@ -187,33 +187,6 @@ var Axis = /** @class */ (function () {
     return Axis;
 }());
 
-var CSSStyle = /** @class */ (function () {
-    function CSSStyle() {
-        this.id = Date.now() + "-" + ~~(Math.random() * 1000);
-    }
-    CSSStyle.prototype.property = function (name) {
-        return "--" + name + "-" + this.id;
-    };
-    CSSStyle.prototype.get = function (property) {
-        return document.body.style.getPropertyValue(this.property(property));
-    };
-    CSSStyle.prototype.set = function (property, value) {
-        document.body.style.setProperty(this.property(property), value);
-        return this;
-    };
-    CSSStyle.prototype.bind = function (style) {
-        var _this = this;
-        var properties = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            properties[_i - 1] = arguments[_i];
-        }
-        properties.forEach(function (property) {
-            style.setProperty(property, "var(" + _this.property(property) + ")");
-        });
-    };
-    return CSSStyle;
-}());
-
 var Label = /** @class */ (function (_super) {
     __extends(Label, _super);
     function Label() {
@@ -238,20 +211,21 @@ var Label = /** @class */ (function (_super) {
     };
     Label.prototype.resize = function (axis, opposite, position, renderingScale) {
         if (renderingScale === void 0) { renderingScale = 10; }
+        var oppositeRelative = !!opposite.rootPosition;
         var rootPosition = (opposite.rootPosition - 0.5) * opposite.size;
         position = (position / (axis.labels.length - 1) - 0.5) * axis.size;
-        var spacingX = axis.spacing.x * (opposite.relative || !axis.orientation.x);
-        var spacingY = axis.spacing.y * (opposite.relative || !axis.orientation.y);
+        var spacingX = axis.spacing.x * (oppositeRelative || !axis.orientation.x);
+        var spacingY = axis.spacing.y * (oppositeRelative || !axis.orientation.y);
         this.content.style.transform = "translate(" + 50 * spacingX + "%, " + -50 * spacingY + "%)";
         this.position
             .setX(renderingScale * (axis.orientation.x * position +
             axis.orientation.y * rootPosition +
             axis.margin * spacingX -
-            axis.padding * axis.orientation.y * !opposite.relative))
+            axis.padding * axis.orientation.y * (1 - oppositeRelative)))
             .setY(renderingScale * (axis.orientation.y * position +
             axis.orientation.x * rootPosition +
             axis.margin * spacingY -
-            axis.padding * axis.orientation.x * !opposite.relative));
+            axis.padding * axis.orientation.x * (1 - oppositeRelative)));
     };
     return Label;
 }(CSS3DRenderer.CSS3DObject));
@@ -261,22 +235,22 @@ var Labels = /** @class */ (function (_super) {
     function Labels(_a) {
         var _b = _a === void 0 ? {} : _a, _c = _b.opacity, opacity = _c === void 0 ? 1 : _c, _d = _b.color, color = _d === void 0 ? '#aaaaaa' : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 0.3 : _e, _f = _b.fontFamily, fontFamily = _f === void 0 ? 'sans-serif' : _f, _g = _b.faceCamera, faceCamera = _g === void 0 ? false : _g, _h = _b.renderingScale, renderingScale = _h === void 0 ? 100 : _h;
         var _this = _super.call(this) || this;
-        _this.cssStyle = new CSSStyle().set('white-space', 'nowrap');
-        _this.onBeforeRender = function (_, __, camera) {
-            camera.position.multiplyScalar(_this.renderingScale);
-            _this.faceCamera && _this.children.forEach(function (label) {
-                label.lookAt(camera.position);
-            });
-        };
-        _this.onAfterRender = function (_, __, camera) {
-            camera.position.divideScalar(_this.renderingScale);
-        };
+        _this.css3DRenderer = new CSS3DRenderer.CSS3DRenderer();
+        _this.style = _this.css3DRenderer.domElement.style;
+        _this.originalMatrix = new three.Matrix4();
         _this.opacity = opacity;
         _this.color = color;
         _this.fontSize = fontSize;
         _this.fontFamily = fontFamily;
         _this.faceCamera = faceCamera;
         _this.renderingScale = renderingScale;
+        _this.matrixAutoUpdate = false;
+        _this.style.position = 'absolute';
+        _this.style.pointerEvents = 'none';
+        _this.style.top =
+            _this.style.left = '0';
+        _this.style.zIndex = '2';
+        document.body.appendChild(_this.css3DRenderer.domElement);
         return _this;
     }
     Labels.prototype.iterate = function (x, y, callback) {
@@ -287,41 +261,35 @@ var Labels = /** @class */ (function (_super) {
             }, index);
         }, 0);
     };
-    Labels.prototype.addLabel = function () {
-        var label = new Label();
-        this.cssStyle.bind(label.style, 'opacity', 'color', 'visibility', 'white-space', 'transform', 'font-size', 'font-family');
-        this.add(label);
-        return label;
-    };
     Labels.prototype.scaleFont = function () {
-        this.cssStyle.set('font-size', this.fontSize * this.renderingScale + "px");
+        this.style.fontSize = this.fontSize * this.renderingScale + "px";
     };
     Object.defineProperty(Labels.prototype, "opacity", {
         get: function () {
-            return parseFloat(this.cssStyle.get('opacity'));
+            return parseFloat(this.style.opacity);
         },
         set: function (opacity) {
-            this.cssStyle.set('opacity', opacity);
+            this.style.opacity = opacity;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(Labels.prototype, "color", {
         get: function () {
-            return this.cssStyle.get('color');
+            return this.style.color;
         },
         set: function (color) {
-            this.cssStyle.set('color', color);
+            this.style.color = color;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(Labels.prototype, "fontFamily", {
         get: function () {
-            return this.cssStyle.get('font-family');
+            return this.style.fontFamily;
         },
         set: function (fontFamily) {
-            this.cssStyle.set('font-family', fontFamily);
+            this.style.fontFamily = fontFamily;
         },
         enumerable: true,
         configurable: true
@@ -339,20 +307,48 @@ var Labels = /** @class */ (function (_super) {
     });
     Object.defineProperty(Labels.prototype, "visible", {
         get: function () {
-            return this.cssStyle && this.cssStyle.get('visibility') !== 'hidden';
+            return this.style ? this.style.display !== 'none' : true;
         },
         set: function (visible) {
-            this.cssStyle && this.cssStyle.set('visibility', visible ? 'visible' : 'hidden');
+            if (this.style)
+                this.style.visibility = visible ? null : 'none';
         },
         enumerable: true,
         configurable: true
     });
+    Labels.prototype.setRendererSize = function (width, height) {
+        this.css3DRenderer.setSize(width, height);
+    };
+    Labels.prototype.render = function (camera) {
+        var parent = this.parent;
+        var xCamera = camera.position.x;
+        var yCamera = camera.position.y;
+        var zCamera = camera.position.z;
+        this.originalMatrix.copy(this.matrix);
+        this.parent = null;
+        camera.position.multiplyScalar(this.renderingScale);
+        this.updateWorldMatrix(true, false);
+        parent.updateWorldMatrix(true, false);
+        this.applyMatrix(parent.matrixWorld);
+        this.updateWorldMatrix(false, false);
+        this.faceCamera && this.children.forEach(function (label) {
+            label.lookAt(camera.position);
+        });
+        this.position.multiplyScalar(this.renderingScale);
+        this.updateMatrix();
+        this.css3DRenderer.render(this, camera);
+        camera.position.set(xCamera, yCamera, zCamera);
+        this.parent = parent;
+        this.matrix.copy(this.originalMatrix);
+        this.matrix.decompose(this.position, this.quaternion, this.scale);
+    };
     Labels.prototype.generate = function (x, y) {
         var _this = this;
         this.scaleFont();
         this.children
             .slice(this.iterate(x, y, function (axis, opposite, index, position, value) {
-            var label = _this.children[index] || _this.addLabel();
+            var label = _this.children[index];
+            label || _this.add(label = new Label());
             label.generate(axis, value);
             label.resize(axis, opposite, position, _this.renderingScale);
         }))
@@ -460,10 +456,8 @@ var Graduations = /** @class */ (function (_super) {
 var Axes = /** @class */ (function (_super) {
     __extends(Axes, _super);
     function Axes(_a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xaaaaaa : _g, _h = _b.generate, generate = _h === void 0 ? true : _h, _j = _b.autoRenderCSS3D, autoRenderCSS3D = _j === void 0 ? true : _j;
+        var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xaaaaaa : _g, _h = _b.generate, generate = _h === void 0 ? true : _h;
         var _this = _super.call(this, new Graduations()) || this;
-        _this.onBeforeRender = function (renderer, scene, camera) { return _this.labels.onBeforeRender(renderer, scene, camera); };
-        _this.onAfterRender = function (renderer, scene, camera) { return _this.labels.onAfterRender(renderer, scene, camera); };
         _this.x = new Axis(__assign({}, x, { orientation: new three.Vector2(1, 0), spacing: new three.Vector2(1, -1) }));
         _this.y = new Axis(__assign({}, y, { orientation: new three.Vector2(0, 1), spacing: new three.Vector2(-1, 1) }));
         _this.graduations = _this.geometry;
@@ -471,9 +465,6 @@ var Axes = /** @class */ (function (_super) {
         _this.opacity = opacity;
         _this.color.set(color);
         _this.add(_this.labels);
-        autoRenderCSS3D && _this.autoRenderCSS3D(autoRenderCSS3D === true
-            ? _this
-            : autoRenderCSS3D);
         generate && _this.generate();
         return _this;
     }
@@ -539,23 +530,6 @@ var Axes = /** @class */ (function (_super) {
     };
     Axes.prototype.resizeLabels = function () {
         this.labels.resize(this.x, this.y);
-    };
-    Axes.prototype.autoRenderCSS3D = function (scene) {
-        var onAfterRender = this.onAfterRender;
-        var css3DRenderer = new CSS3DRenderer.CSS3DRenderer();
-        var rendererSize = new three.Vector2();
-        css3DRenderer.domElement.style.position = 'absolute';
-        css3DRenderer.domElement.style.pointerEvents = 'none';
-        css3DRenderer.domElement.style.top =
-            css3DRenderer.domElement.style.left = '0';
-        css3DRenderer.domElement.style.zIndex = '2';
-        scene.onAfterRender = function (renderer, scene, camera) {
-            renderer.getSize(rendererSize);
-            css3DRenderer.setSize(rendererSize.x, rendererSize.y);
-            css3DRenderer.render(scene, camera);
-            onAfterRender(renderer, scene, camera);
-        };
-        document.body.appendChild(css3DRenderer.domElement);
     };
     Axes.prototype.interpolateValue = function (value, minimum, maximum, axis) {
         return (value - minimum) / (maximum - minimum) * (this.graduations.container.max[axis] -

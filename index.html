@@ -194,6 +194,7 @@
         .step(0.01)
         .max(10)
         .name('size')
+        .onChange(() => axes.resizeLabels())
 
       colorGUI.addColor(axes.labels, 'color').name('labels')
       colorGUI.add(axes.labels, 'opacity').min(0).max(1).step(0.01).name('labels opacity')
@@ -293,6 +294,7 @@
       function resize() {
         const { innerWidth: width, innerHeight: height } = window
         renderer.setSize(width, height)
+        axes.labels.setRendererSize(width, height)
         camera.aspect = width / height
         camera.updateProjectionMatrix()
       }
@@ -312,6 +314,7 @@
         date += delta
 
         update(delta, date - initialDate)
+        axes.labels.render(camera)
         renderer.render(scene, camera)
         requestAnimationFrame(loop)
       }

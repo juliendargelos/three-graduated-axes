@@ -1,4 +1,4 @@
-import { Mesh, WebGLRenderer, Camera, Scene, Color, Vector2 } from 'three';
+import { Mesh, Color, Vector2 } from 'three';
 import { Axis, AxisParameters, AxisGenerateParameters } from '~/axis';
 import { Labels, LabelsParameters } from '~/labels';
 import { Graduations } from '~/graduations';
@@ -7,20 +7,17 @@ export declare class Axes extends Mesh {
     y: Axis;
     labels: Labels;
     graduations: Graduations;
-    constructor({ x, y, labels, opacity, color, generate, autoRenderCSS3D }?: {
+    constructor({ x, y, labels, opacity, color, generate }?: {
         x?: Partial<AxisParameters>;
         y?: Partial<AxisParameters>;
         labels?: Partial<LabelsParameters>;
         opacity?: number;
         color?: Color | number | string;
         generate?: boolean;
-        autoRenderCSS3D?: boolean | Scene;
     });
     visible: boolean;
     color: Color;
     opacity: number;
-    onBeforeRender: (renderer: WebGLRenderer, scene: Scene, camera: Camera) => void;
-    onAfterRender: (renderer: WebGLRenderer, scene: Scene, camera: Camera) => void;
     generate(values?: ({
         x: number;
         y: number;
@@ -33,7 +30,6 @@ export declare class Axes extends Mesh {
     resizeGraduations(): void;
     generateLabels(): void;
     resizeLabels(): void;
-    autoRenderCSS3D(scene: Scene): void;
     interpolateValue(value: number, minimum: number, maximum: number, axis: 'x' | 'y'): number;
     interpolate(values: ({
         x: number;

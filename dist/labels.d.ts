@@ -1,4 +1,4 @@
-import { Object3D, WebGLRenderer, Camera, Scene } from 'three';
+import { Object3D, Camera } from 'three';
 import { Axis } from '~/axis';
 export interface LabelsParameters {
     opacity: number;
@@ -9,21 +9,22 @@ export interface LabelsParameters {
     renderingScale: number;
 }
 export declare class Labels extends Object3D implements LabelsParameters {
-    private readonly cssStyle;
+    private readonly css3DRenderer;
+    private readonly style;
+    private readonly originalMatrix;
     private _faceCamera;
     fontSize: number;
     renderingScale: number;
     constructor({ opacity, color, fontSize, fontFamily, faceCamera, renderingScale, }?: Partial<LabelsParameters>);
     private iterate;
-    private addLabel;
     private scaleFont;
     opacity: number;
     color: string;
     fontFamily: string;
     faceCamera: boolean;
     visible: boolean;
-    onBeforeRender: (_: WebGLRenderer, __: Scene, camera: Camera) => void;
-    onAfterRender: (_: WebGLRenderer, __: Scene, camera: Camera) => void;
+    setRendererSize(width: number, height: number): void;
+    render(camera: Camera): void;
     generate(x: Axis, y: Axis): void;
     resize(x: Axis, y: Axis): void;
 }

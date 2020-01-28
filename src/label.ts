@@ -32,15 +32,16 @@ export class Label extends CSS3DObject {
     position: number,
     renderingScale: number = 10
   ): void {
+    const oppositeRelative = !!opposite.rootPosition as unknown as number
     const rootPosition = (opposite.rootPosition - 0.5) * opposite.size
     position = (position / (axis.labels.length - 1) - 0.5) * axis.size
 
     const spacingX = axis.spacing.x * (
-      (opposite.relative || !axis.orientation.x) as unknown as number
+      (oppositeRelative || !axis.orientation.x) as unknown as number
     )
 
     const spacingY = axis.spacing.y * (
-      (opposite.relative || !axis.orientation.y) as unknown as number
+      (oppositeRelative || !axis.orientation.y) as unknown as number
     )
 
     this.content.style.transform = `translate(${
@@ -54,17 +55,13 @@ export class Label extends CSS3DObject {
         axis.orientation.x * position +
         axis.orientation.y * rootPosition +
         axis.margin * spacingX -
-        axis.padding * axis.orientation.y * (
-          !opposite.relative as unknown as number
-        )
+        axis.padding * axis.orientation.y * (1 - oppositeRelative)
       ))
       .setY(renderingScale * (
         axis.orientation.y * position +
         axis.orientation.x * rootPosition +
         axis.margin * spacingY -
-        axis.padding * axis.orientation.x * (
-          !opposite.relative as unknown as number
-        )
+        axis.padding * axis.orientation.x * (1 - oppositeRelative)
       ))
   }
 }

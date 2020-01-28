@@ -1,14 +1,4 @@
-import {
-  Mesh,
-  MeshBasicMaterial,
-  WebGLRenderer,
-  Camera,
-  Scene,
-  Color,
-  Vector2
-} from 'three'
-
-import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer'
+import { Mesh, MeshBasicMaterial, Color, Vector2 } from 'three'
 import { Axis, AxisParameters, AxisGenerateParameters } from '~/axis'
 import { Labels, LabelsParameters } from '~/labels'
 import { Graduations } from '~/graduations'
@@ -25,8 +15,7 @@ export class Axes extends Mesh {
     labels = {},
     opacity = 1,
     color = 0xaaaaaa,
-    generate = true,
-    autoRenderCSS3D = true
+    generate = true
   }: {
     x?: Partial<AxisParameters>
     y?: Partial<AxisParameters>
@@ -34,7 +23,6 @@ export class Axes extends Mesh {
     opacity?: number
     color?: Color | number | string
     generate?: boolean
-    autoRenderCSS3D?: boolean | Scene
   } = {}) {
     super(new Graduations())
 
@@ -54,11 +42,6 @@ export class Axes extends Mesh {
     this.color.set(color as Color)
 
     this.add(this.labels)
-
-    autoRenderCSS3D && this.autoRenderCSS3D(autoRenderCSS3D === true
-      ? this as unknown as Scene
-      : autoRenderCSS3D
-    )
 
     generate && this.generate()
   }
@@ -87,18 +70,6 @@ export class Axes extends Mesh {
     (this.material as MeshBasicMaterial).transparent = opacity !== 1
     ;(this.material as MeshBasicMaterial).opacity = opacity
   }
-
-  public onBeforeRender = (
-    renderer: WebGLRenderer,
-    scene: Scene,
-    camera: Camera
-  ) => this.labels.onBeforeRender(renderer, scene, camera)
-
-  public onAfterRender = (
-    renderer: WebGLRenderer,
-    scene: Scene,
-    camera: Camera
-  ) => this.labels.onAfterRender(renderer, scene, camera)
 
   public generate(values?: ({ x: number, y: number })[], { x = {}, y = {} }: {
     x?: Partial<AxisGenerateParameters>
@@ -132,31 +103,6 @@ export class Axes extends Mesh {
 
   public resizeLabels(): void {
     this.labels.resize(this.x, this.y)
-  }
-
-  public autoRenderCSS3D(scene: Scene): void {
-    const onAfterRender = this.onAfterRender
-    const css3DRenderer = new CSS3DRenderer()
-    const rendererSize = new Vector2()
-
-    css3DRenderer.domElement.style.position = 'absolute'
-    css3DRenderer.domElement.style.pointerEvents = 'none'
-    css3DRenderer.domElement.style.top =
-    css3DRenderer.domElement.style.left = '0'
-    css3DRenderer.domElement.style.zIndex = '2'
-
-    scene.onAfterRender = (
-      renderer: WebGLRenderer,
-      scene: Scene,
-      camera: Camera,
-    ) => {
-      renderer.getSize(rendererSize)
-      css3DRenderer.setSize(rendererSize.x, rendererSize.y)
-      css3DRenderer.render(scene, camera)
-      onAfterRender(renderer, scene, camera)
-    }
-
-    document.body.appendChild(css3DRenderer.domElement)
   }
 
   public interpolateValue(
