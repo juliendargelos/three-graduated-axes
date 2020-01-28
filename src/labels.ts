@@ -140,6 +140,7 @@ export class Labels extends Object3D implements LabelsParameters {
 
     this.position.multiplyScalar(this.renderingScale)
     this.updateMatrix()
+    this.updateMatrixWorld(true)
 
     this.css3DRenderer.render(this as unknown as Scene, camera)
 

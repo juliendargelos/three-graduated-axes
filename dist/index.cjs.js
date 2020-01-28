@@ -335,6 +335,7 @@ var Labels = /** @class */ (function (_super) {
         });
         this.position.multiplyScalar(this.renderingScale);
         this.updateMatrix();
+        this.updateMatrixWorld(true);
         this.css3DRenderer.render(this, camera);
         camera.position.set(xCamera, yCamera, zCamera);
         this.parent = parent;
