@@ -106,9 +106,9 @@ var Axis = /** @class */ (function () {
         configurable: true
     });
     Axis.prototype.generate = function (values, _a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.targetDensity, targetDensity = _c === void 0 ? 4 : _c, _d = _b.minimumDelta, minimumDelta = _d === void 0 ? 1 : _d, _e = _b.rounding, rounding = _e === void 0 ? 2 : _e, _f = _b.avoidPrime, avoidPrime = _f === void 0 ? true : _f, _g = _b.includeZero, includeZero = _g === void 0 ? false : _g, _h = _b.autoRelative, autoRelative = _h === void 0 ? true : _h, 
+        var _b = _a === void 0 ? {} : _a, _c = _b.targetDensity, targetDensity = _c === void 0 ? 4 : _c, _d = _b.minimumDelta, minimumDelta = _d === void 0 ? 1 : _d, _e = _b.rounding, rounding = _e === void 0 ? 2 : _e, _f = _b.avoidPrime, avoidPrime = _f === void 0 ? true : _f, _g = _b.includeZero, includeZero = _g === void 0 ? false : _g, _h = _b.autoRelative, autoRelative = _h === void 0 ? true : _h, _j = _b.minimumOffset, minimumOffset = _j === void 0 ? 0 : _j, _k = _b.maximumOffset, maximumOffset = _k === void 0 ? 0 : _k, 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _j = _b.symmetric // TODO
+        _l = _b.symmetric // TODO
         ; 
         this.reset();
         var firstValue = values[0];
@@ -127,6 +127,8 @@ var Axis = /** @class */ (function () {
             if (valueDelta && valueDelta < delta)
                 delta = valueDelta;
         });
+        minimum -= minimumOffset;
+        maximum += maximumOffset;
         if (autoRelative)
             this.relative = minimum < 0 && maximum > 0;
         var range = maximum - minimum;

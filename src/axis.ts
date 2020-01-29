@@ -24,6 +24,8 @@ export interface AxisGenerateParameters {
   includeZero: boolean
   autoRelative: boolean
   symmetric: boolean
+  minimumOffset: number
+  maximumOffset: number
 }
 
 export class Axis implements AxisParameters {
@@ -132,6 +134,8 @@ export class Axis implements AxisParameters {
     avoidPrime = true,
     includeZero = false,
     autoRelative = true,
+    minimumOffset = 0,
+    maximumOffset = 0,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     symmetric = false // TODO
   }: Partial<AxisGenerateParameters> = {}): void {
@@ -152,6 +156,9 @@ export class Axis implements AxisParameters {
       const valueDelta = Math.abs(value - firstValue)
       if (valueDelta && valueDelta < delta) delta = valueDelta
     })
+
+    minimum -= minimumOffset
+    maximum += maximumOffset
 
     if (autoRelative) this.relative = minimum < 0 && maximum > 0
 

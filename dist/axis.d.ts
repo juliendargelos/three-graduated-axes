@@ -22,6 +22,8 @@ export interface AxisGenerateParameters {
     includeZero: boolean;
     autoRelative: boolean;
     symmetric: boolean;
+    minimumOffset: number;
+    maximumOffset: number;
 }
 export declare class Axis implements AxisParameters {
     private _relative;
@@ -50,7 +52,7 @@ export declare class Axis implements AxisParameters {
     private updateRootPosition;
     labels: (number | string)[];
     relative: boolean;
-    generate(values: number[], { targetDensity, minimumDelta, rounding, avoidPrime, includeZero, autoRelative, symmetric }?: Partial<AxisGenerateParameters>): void;
+    generate(values: number[], { targetDensity, minimumDelta, rounding, avoidPrime, includeZero, autoRelative, minimumOffset, maximumOffset, symmetric }?: Partial<AxisGenerateParameters>): void;
     reset(): void;
 }
 //# sourceMappingURL=axis.d.ts.map
