@@ -14,7 +14,7 @@ export declare class Container extends Box2 {
     interpolatePoint(point: {
         x: number;
         y: number;
-    }, container: Container, target?: Vector2): Vector2;
+    }, container?: Container, target?: Vector2): Vector2;
     interpolatePoints(points: ({
         x: number;
         y: number;

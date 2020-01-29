@@ -477,8 +477,7 @@ var Container = /** @class */ (function (_super) {
     };
     Container.prototype.interpolatePoint = function (point, container, target) {
         if (target === void 0) { target = new three.Vector2(); }
-        return container
-            .normalizePoint(point, target)
+        return (container ? container.normalizePoint(point, target) : target)
             .multiply(this.size)
             .add(this.min);
     };

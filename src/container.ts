@@ -24,11 +24,10 @@ export class Container extends Box2 {
 
   public interpolatePoint(
     point: { x: number, y: number },
-    container: Container,
+    container?: Container,
     target: Vector2 = new Vector2()
   ): Vector2 {
-    return container
-      .normalizePoint(point, target)
+    return (container ? container.normalizePoint(point, target) : target)
       .multiply(this.size)
       .add(this.min)
   }
