@@ -36,14 +36,14 @@ let axes = new Axes({
   },
   labels: {
     opacity: 1, // Opacity of labels
-    color: '#aaaaaa', // Color of labels (can only be a string)
+    color: '#ffffff', // Color of labels (can only be a string)
     fontSize: 0.1, // Font size of labels
     fontFamily: 'sans-serif', // Font family of labels
     faceCamera: false, // Set to true to make labels looking at camera
     renderingScale: 100 // Scale/unscale html sizes to fix rendering issues
   },
   opacity: 1, // Opacity of graduations
-  color: 0xaaaaaa, // Color of graduations (hexadecimal number, string or Color instance)
+  color: 0xffffff, // Color of graduations (hexadecimal number, string or Color instance)
   generate: true, // Set to false to prevent geometry and labels from being generated at instantiation
 })
 ```

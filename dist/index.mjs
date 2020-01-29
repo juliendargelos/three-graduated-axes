@@ -1,4 +1,4 @@
-import { Matrix4, Object3D, BufferAttribute, Box2, Vector2, BufferGeometry, Mesh } from 'three';
+import { Matrix4, Object3D, BufferAttribute, BufferGeometry, Vector2, Box2, Mesh } from 'three';
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
 
 /*! *****************************************************************************
@@ -230,7 +230,7 @@ var Label = /** @class */ (function (_super) {
 var Labels = /** @class */ (function (_super) {
     __extends(Labels, _super);
     function Labels(_a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.opacity, opacity = _c === void 0 ? 1 : _c, _d = _b.color, color = _d === void 0 ? '#aaaaaa' : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 0.3 : _e, _f = _b.fontFamily, fontFamily = _f === void 0 ? 'sans-serif' : _f, _g = _b.faceCamera, faceCamera = _g === void 0 ? false : _g, _h = _b.renderingScale, renderingScale = _h === void 0 ? 100 : _h;
+        var _b = _a === void 0 ? {} : _a, _c = _b.opacity, opacity = _c === void 0 ? 1 : _c, _d = _b.color, color = _d === void 0 ? '#ffffff' : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 0.3 : _e, _f = _b.fontFamily, fontFamily = _f === void 0 ? 'sans-serif' : _f, _g = _b.faceCamera, faceCamera = _g === void 0 ? false : _g, _h = _b.renderingScale, renderingScale = _h === void 0 ? 100 : _h;
         var _this = _super.call(this) || this;
         _this.css3DRenderer = new CSS3DRenderer();
         _this.originalMatrix = new Matrix4();
@@ -368,7 +368,6 @@ var Graduations = /** @class */ (function (_super) {
     function Graduations() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.graduations = [];
-        _this.container = new Box2(new Vector2(), new Vector2());
         return _this;
     }
     Graduations.prototype.generate = function (x, y) {
@@ -419,10 +418,12 @@ var Graduations = /** @class */ (function (_super) {
         var yHalfSize = y.size / 2;
         var xFactor = x.size / Math.max(1, xGraduations - 1);
         var yFactor = y.size / Math.max(1, yGraduations - 1);
-        var xPaddedHalfSize = xHalfSize + y.padding;
-        var yPaddedHalfSize = yHalfSize + x.padding;
+        var xHalfPaddedSize = xHalfSize + y.padding;
+        var yHalfPaddedSize = yHalfSize + x.padding;
         var xHalfLineWidth = x.lineWidth / 2;
         var yHalfLineWidth = y.lineWidth / 2;
+        var xHalfOuterSize = xHalfPaddedSize + xHalfLineWidth;
+        var yHalfOuterSize = yHalfPaddedSize + yHalfLineWidth;
         var xRootPosition = xGraduations === 1 ? x.rootPosition * x.size : 0;
         var yRootPosition = yGraduations === 1 ? y.rootPosition * y.size : 0;
         var xProgress = x.progress * 2;
@@ -432,30 +433,77 @@ var Graduations = /** @class */ (function (_super) {
             var position = i * xFactor - xHalfSize + xRootPosition;
             vertices[index] = vertices[index + 9] = position - xHalfLineWidth;
             vertices[index + 3] = vertices[index + 6] = position + xHalfLineWidth;
-            vertices[index + 7] = vertices[index + 10] = -yPaddedHalfSize;
-            vertices[index + 1] = vertices[index + 4] = (yPaddedHalfSize * xProgress - yPaddedHalfSize);
+            vertices[index + 7] = vertices[index + 10] = -yHalfOuterSize;
+            vertices[index + 1] = vertices[index + 4] = -yHalfOuterSize + (yHalfOuterSize * xProgress);
             index += 12;
         }
         for (var i = 0; i < yGraduations; i++) {
             var position = i * yFactor - yHalfSize + yRootPosition;
             vertices[index + 7] = vertices[index + 10] = position - yHalfLineWidth;
             vertices[index + 1] = vertices[index + 4] = position + yHalfLineWidth;
-            vertices[index] = vertices[index + 9] = -xPaddedHalfSize;
-            vertices[index + 3] = vertices[index + 6] = (xPaddedHalfSize * yProgress - xPaddedHalfSize);
+            vertices[index] = vertices[index + 9] = -xHalfOuterSize;
+            vertices[index + 3] = vertices[index + 6] = -xHalfOuterSize + (xHalfOuterSize * yProgress);
             index += 12;
         }
         positionAttribute.needsUpdate = true;
-        this.container.min.set(x.startOffset * x.size - xHalfSize, y.startOffset * y.size - yHalfSize);
-        this.container.max.set(xHalfSize - x.endOffset * x.size, yHalfSize - y.endOffset * y.size);
     };
     return Graduations;
 }(BufferGeometry));
 
+var Container = /** @class */ (function (_super) {
+    __extends(Container, _super);
+    function Container(points) {
+        var _this = _super.call(this) || this;
+        _this._size = new Vector2();
+        points && _this.setFromPoints(points);
+        return _this;
+    }
+    Object.defineProperty(Container.prototype, "size", {
+        get: function () {
+            return this.getSize(this._size);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Container.prototype.normalizePoint = function (point, target) {
+        if (target === void 0) { target = new Vector2(); }
+        return target
+            .subVectors(point, this.min)
+            .divide(this.size);
+    };
+    Container.prototype.interpolatePoint = function (point, container, target) {
+        if (target === void 0) { target = new Vector2(); }
+        return container
+            .normalizePoint(point, target)
+            .multiply(this.size)
+            .add(this.min);
+    };
+    Container.prototype.interpolatePoints = function (points, targets) {
+        var _this = this;
+        if (targets === void 0) { targets = points.map(function () { return new Vector2(); }); }
+        var container = new Container(points);
+        points.some(function (point, index) {
+            if (index >= targets.length)
+                return true;
+            _this.interpolatePoint(point, container, targets[index]);
+        });
+        return targets;
+    };
+    Container.prototype.resize = function (x, y) {
+        var xHalfSize = x.size / 2;
+        var yHalfSize = y.size / 2;
+        this.min.set(x.startOffset * x.size - xHalfSize, y.startOffset * y.size - yHalfSize);
+        this.max.set(xHalfSize - x.endOffset * x.size, yHalfSize - y.endOffset * y.size);
+    };
+    return Container;
+}(Box2));
+
 var Axes = /** @class */ (function (_super) {
     __extends(Axes, _super);
     function Axes(_a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xaaaaaa : _g, _h = _b.generate, generate = _h === void 0 ? true : _h;
+        var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xffffff : _g, _h = _b.generate, generate = _h === void 0 ? true : _h;
         var _this = _super.call(this, new Graduations()) || this;
+        _this.container = new Container();
         _this.x = new Axis(__assign({}, x, { orientation: new Vector2(1, 0), spacing: new Vector2(1, -1) }));
         _this.y = new Axis(__assign({}, y, { orientation: new Vector2(0, 1), spacing: new Vector2(-1, 1) }));
         _this.graduations = _this.geometry;
@@ -519,46 +567,17 @@ var Axes = /** @class */ (function (_super) {
     };
     Axes.prototype.generateGraduations = function () {
         this.graduations.generate(this.x, this.y);
+        this.container.resize(this.x, this.y);
     };
     Axes.prototype.resizeGraduations = function () {
         this.graduations.resize(this.x, this.y);
+        this.container.resize(this.x, this.y);
     };
     Axes.prototype.generateLabels = function () {
         this.labels.generate(this.x, this.y);
     };
     Axes.prototype.resizeLabels = function () {
         this.labels.resize(this.x, this.y);
-    };
-    Axes.prototype.interpolateValue = function (value, minimum, maximum, axis) {
-        return (value - minimum) / (maximum - minimum) * (this.graduations.container.max[axis] -
-            this.graduations.container.min[axis]) + this.graduations.container.min[axis];
-    };
-    Axes.prototype.interpolate = function (values, points) {
-        var _this = this;
-        if (points === void 0) { points = []; }
-        points.length > values.length && points.splice(values.length);
-        while (points.length < values.length)
-            points.push(new Vector2());
-        var xMinimum = Infinity;
-        var yMinimum = Infinity;
-        var xMaximum = -Infinity;
-        var yMaximum = -Infinity;
-        values.forEach(function (_a) {
-            var x = _a.x, y = _a.y;
-            if (x < xMinimum)
-                xMinimum = x;
-            if (x > xMaximum)
-                xMaximum = x;
-            if (y < yMinimum)
-                yMinimum = y;
-            if (y > yMaximum)
-                yMaximum = y;
-        });
-        values.forEach(function (_a, index) {
-            var x = _a.x, y = _a.y;
-            return points[index].set(_this.interpolateValue(x, xMinimum, xMaximum, 'x'), _this.interpolateValue(y, yMinimum, yMaximum, 'y'));
-        });
-        return points;
     };
     return Axes;
 }(Mesh));

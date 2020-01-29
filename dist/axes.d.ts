@@ -1,12 +1,14 @@
-import { Mesh, Color, Vector2 } from 'three';
+import { Mesh, Color } from 'three';
 import { Axis, AxisParameters, AxisGenerateParameters } from '~/axis';
 import { Labels, LabelsParameters } from '~/labels';
 import { Graduations } from '~/graduations';
+import { Container } from '~/container';
 export declare class Axes extends Mesh {
     x: Axis;
     y: Axis;
     labels: Labels;
     graduations: Graduations;
+    container: Container;
     constructor({ x, y, labels, opacity, color, generate }?: {
         x?: Partial<AxisParameters>;
         y?: Partial<AxisParameters>;
@@ -30,10 +32,5 @@ export declare class Axes extends Mesh {
     resizeGraduations(): void;
     generateLabels(): void;
     resizeLabels(): void;
-    interpolateValue(value: number, minimum: number, maximum: number, axis: 'x' | 'y'): number;
-    interpolate(values: ({
-        x: number;
-        y: number;
-    })[], points?: Vector2[]): Vector2[];
 }
 //# sourceMappingURL=axes.d.ts.map

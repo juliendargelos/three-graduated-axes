@@ -22,7 +22,7 @@ export class Labels extends Object3D implements LabelsParameters {
 
   public constructor({
     opacity = 1,
-    color = '#aaaaaa',
+    color = '#ffffff',
     fontSize = 0.3,
     fontFamily = 'sans-serif',
     faceCamera = false,
