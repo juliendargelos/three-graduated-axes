@@ -1,6 +1,6 @@
 {
   "name": "three-graduated-axes",
-  "version": "1.0.0",
+  "version": "3.2.0",
   "description": "Generate and manipulate x/y axes graduations and labels.",
   "author": "Julien Dargelos <contact@juliendargelos.com>",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "@types/webgl2": "^0.0.5"
   },
   "peerDependencies": {
-    "three": "^0.110.0"
+    "three": "^0.112.1"
   },
   "devDependencies": {
     "@types/cannon": "^0.1.4",
@@ -38,9 +38,9 @@
     "rollup-plugin-eslint": "^7.0.0",
     "rollup-plugin-node-resolve": "^4.0.0",
     "rollup-plugin-terser": "^4.0.4",
-    "rollup-plugin-typescript2": "^0.21.0",
+    "rollup-plugin-typescript2": "^0.25.3",
     "serve": "^11.2.0",
-    "three": "^0.110.0",
+    "three": "^0.112.1",
     "typescript": "3.5.1"
   }
 }

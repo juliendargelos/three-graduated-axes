@@ -36,6 +36,7 @@
     <script src="node_modules/three/examples/js/controls/OrbitControls.js"></script>
     <script src="node_modules/three/examples/js/renderers/CSS3DRenderer.js"></script>
     <script src="node_modules/dat.gui/build/dat.gui.js"></script>
+    <script src="node_modules/animejs/lib/anime.min.js"></script>
     <script src="dist/index.umd.js"></script>
     <script>
       /* RENDERING */
@@ -55,7 +56,22 @@
       const pointLight = new THREE.PointLight()
       pointLight.position.set(6, 4, 6)
 
-      const axes = new THREEGraduatedAxes.Axes({ opacity: 0.3 })
+      const axes = new THREEGraduatedAxes.Axes({
+        x: {
+          labels: [0, 1, 2, 3, 4],
+          size: 10,
+          margin: 1,
+          progress: 0
+        },
+        y: {
+          labels: [0, 1, 2, 3, 4],
+          size: 10,
+          margin: 1,
+          progress: 0
+        },
+        labels: { opacity: 0 },
+        opacity: 0
+      })
 
       const curve = new THREE.Line()
       let values
@@ -80,8 +96,8 @@
 
       function generateCurve() {
         curve.geometry.setAttribute('position', new THREE.BufferAttribute(
-          new Float32Array(axes
-            .interpolate(values)
+          new Float32Array(axes.container
+            .interpolatePoints(values)
             .reduce((vertices, { x, y }) => {
                vertices.push(x, y, 0)
                return vertices
@@ -89,8 +105,6 @@
           3
         ))
       }
-
-      generateValues()
 
       axes.add(curve)
 
@@ -112,6 +126,11 @@
       gui.add({ generateValues }, 'generateValues').name('generate values')
       gui.add(axes.labels, 'faceCamera').name('labels face camera')
       gui.add(axes, 'visible')
+      gui.add(axes.labels, 'renderingScale')
+        .min(20)
+        .max(300)
+        .name('labels rendering scale')
+        .onChange(() => axes.resizeLabels())
 
       const xGUI = gui.addFolder('x axis')
       const yGUI = gui.addFolder('y axis')
@@ -130,11 +149,17 @@
       const xGraduationsController = xGUI.add(axes.x, 'graduations').min(0).max(3).step(0.01).onChange(() => axes.generateGraduations())
       const yGraduationsController = yGUI.add(axes.y, 'graduations').min(0).max(3).step(0.01).onChange(() => axes.generateGraduations())
 
+      xGUI.add(axes.x, 'progress').listen().min(0).step(0.01).max(1).onChange(() => axes.resize())
+      yGUI.add(axes.y, 'progress').listen().min(0).step(0.01).max(1).onChange(() => axes.resize())
+
       xGUI.add(axes.x, 'padding').min(0).step(0.01).max(1).onChange(() => axes.resize())
       yGUI.add(axes.y, 'padding').min(0).step(0.01).max(1).onChange(() => axes.resize())
 
       xGUI.add(axes.x, 'margin').min(0).step(0.01).max(1).onChange(() => axes.resizeLabels())
       yGUI.add(axes.y, 'margin').min(0).step(0.01).max(1).onChange(() => axes.resizeLabels())
+
+      xGUI.add(axes.x, 'distance').min(0).step(0.01).max(1).onChange(() => axes.resizeLabels())
+      yGUI.add(axes.y, 'distance').min(0).step(0.01).max(1).onChange(() => axes.resizeLabels())
 
       xGUI.add(axes.x, 'lineWidth').min(0.01).max(0.5).name('line width').onChange(() => axes.resizeGraduations())
       yGUI.add(axes.y, 'lineWidth').min(0.01).max(0.5).name('line width').onChange(() => axes.resizeGraduations())
@@ -175,6 +200,7 @@
         .step(0.01)
         .max(10)
         .name('size')
+        .onChange(() => axes.resizeLabels())
 
       colorGUI.addColor(axes.labels, 'color').name('labels')
       colorGUI.add(axes.labels, 'opacity').min(0).max(1).step(0.01).name('labels opacity')
@@ -230,6 +256,39 @@
         }
       }
 
+      anime({
+        targets: [axes.x, axes.y],
+        duration: 2000,
+        delay: 400,
+        easing: 'easeOutExpo',
+        progress: 1,
+        update: () => axes.resizeGraduations()
+      })
+
+      anime({
+        targets: axes,
+        duration: 2000,
+        easing: 'easeOutExpo',
+        opacity: 1
+      })
+
+      anime({
+        targets: [axes.x, axes.y],
+        duration: 1000,
+        delay: 600,
+        easing: 'easeOutExpo',
+        margin: 0.1,
+        update: () => axes.resizeLabels()
+      })
+
+      anime({
+        targets: axes.labels,
+        duration: 2000,
+        delay: 600,
+        easing: 'easeOutExpo',
+        opacity: 1
+      })
+
       /* UPDATE */
 
       function update(delta, time) {
@@ -241,6 +300,7 @@
       function resize() {
         const { innerWidth: width, innerHeight: height } = window
         renderer.setSize(width, height)
+        axes.labels.setRendererSize(width, height)
         camera.aspect = width / height
         camera.updateProjectionMatrix()
       }
@@ -260,6 +320,7 @@
         date += delta
 
         update(delta, date - initialDate)
+        axes.labels.render(camera)
         renderer.render(scene, camera)
         requestAnimationFrame(loop)
       }

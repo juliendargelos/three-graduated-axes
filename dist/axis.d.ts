@@ -9,8 +9,10 @@ export interface AxisParameters {
     root: boolean;
     relative: boolean;
     lineWidth: number;
+    progress: number;
     margin: number;
     padding: number;
+    distance: number;
 }
 export interface AxisGenerateParameters {
     targetDensity: number;
@@ -20,6 +22,8 @@ export interface AxisGenerateParameters {
     includeZero: boolean;
     autoRelative: boolean;
     symmetric: boolean;
+    minimumOffset: number;
+    maximumOffset: number;
 }
 export declare class Axis implements AxisParameters {
     private _relative;
@@ -33,12 +37,14 @@ export declare class Axis implements AxisParameters {
     graduations: number;
     root: boolean;
     lineWidth: number;
+    progress: number;
     margin: number;
     padding: number;
+    distance: number;
     rootPosition: number;
     startOffset: number;
     endOffset: number;
-    constructor({ orientation, spacing, size, labels, prefix, suffix, decimals, graduations, root, relative, lineWidth, margin, padding }: Partial<AxisParameters> & {
+    constructor({ orientation, spacing, size, labels, prefix, suffix, decimals, graduations, root, relative, lineWidth, progress, margin, padding, distance }: Partial<AxisParameters> & {
         orientation: Vector2;
         spacing: Vector2;
     });
@@ -46,7 +52,7 @@ export declare class Axis implements AxisParameters {
     private updateRootPosition;
     labels: (number | string)[];
     relative: boolean;
-    generate(values: number[], { targetDensity, minimumDelta, rounding, avoidPrime, includeZero, autoRelative, symmetric }?: Partial<AxisGenerateParameters>): void;
+    generate(values: number[], { targetDensity, minimumDelta, rounding, avoidPrime, includeZero, autoRelative, minimumOffset, maximumOffset, symmetric }?: Partial<AxisGenerateParameters>): void;
     reset(): void;
 }
 //# sourceMappingURL=axis.d.ts.map

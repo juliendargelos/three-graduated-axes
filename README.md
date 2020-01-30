@@ -12,7 +12,7 @@ Generate and manipulate x/y axes graduations and labels.
 #### Creating axes
 
 ```javascript
-import { Axes } from 'three-graduated-particles'
+import { Axes } from 'three-graduated-axes'
 
 // These are the default parameters
 let axes = new Axes({
@@ -26,34 +26,49 @@ let axes = new Axes({
     root: false, // Set to true to always display root graduation
     relative: false, // Set to true to align root graduation and labels at 0
     lineWidth: 0.02, // Line width of graduations
+    progress: 1, // Line drawing progress (0-1)
     margin: 0.2, // Space between labels and graduations
-    padding: 0 // Graduation padding
+    padding: 0, // Graduation padding
+    distance: 0 // Z position of labels from graduations
   },
   y: {
     // Same as x parameters
   },
   labels: {
     opacity: 1, // Opacity of labels
-    color: '#aaaaaa', // Color of labels (can only be a string)
+    color: '#ffffff', // Color of labels (can only be a string)
     fontSize: 0.1, // Font size of labels
     fontFamily: 'sans-serif', // Font family of labels
-    faceCamera: false // Set to true to make labels looking at camera
+    faceCamera: false, // Set to true to make labels looking at camera
+    renderingScale: 100 // Scale/unscale html sizes to fix rendering issues
   },
   opacity: 1, // Opacity of graduations
-  color: 0xaaaaaa, // Color of graduations (hexadecimal number, string or Color instance)
-  autoRenderCSS3D: true // Tells axes to handle labels rendering themself by creating a CSS3DRenderer and syncing it with axes rendering
+  color: 0xffffff, // Color of graduations (hexadecimal number, string or Color instance)
+  generate: true, // Set to false to prevent geometry and labels from being generated at instantiation
 })
 ```
 
-Then just add the axes (which extend `Object3D`) to your threejs scene:
+Then add the axes (which extend `Object3D`) to your threejs scene:
 
 ```javascript
 scene.add(axes)
 ```
 
+The labels are dom elements rendered by a CSS3DRenderer, you must manually render them in your loop:
+
+```javascript
+axes.labels.render(camera)
+```
+
+You must also manually resize the labels renderer when needed:
+
+```
+axes.labels.setRendererSize(width, height)
+```
+
 #### Editing axes parameters
 
-All the parameters of the `Axes` constructor (except `autoRenderCSS3D`) are editable from the instance according to the same structure (eg: `axes.x.graduations`, `axes.labels.fontSize`, ...). But you will need to regenerate or resize either the graduations or the labels (or both) depending on the parameters you edited.
+All the parameters of the `Axes` constructor (except `generate`) are editable from the instance according to the same structure (eg: `axes.x.graduations`, `axes.labels.fontSize`, ...). But you will need to regenerate or resize either the graduations or the labels (or both) depending on the parameters you edited.
 
 To generate graduations or labels, call `axes.generateGraduations()` or `axes.generateLabels()`.
 To generate both graduations and labels, call `axes.generate()`.
@@ -74,10 +89,14 @@ This table shows which methods needs to be called to update the axes after editi
 | `x\|y.suffix` | | × | | |
 | `x\|y.decimals` | | × | | |
 | `x\|y.lineWidth` | | | × | |
+| `x\|y.progress` | | | × | |
 | `x\|y.size` | | | × | × |
 | `x\|y.relative` | | | × | × |
 | `x\|y.padding` | | | × | × |
 | `x\|y.margin` | | | | × |
+| `x\|y.distance` | | | | × |
+| `labels.fontSize` | | | | × |
+| `labels.renderingScale` | | | | × |
 
 #### Generate axes from dataset
 

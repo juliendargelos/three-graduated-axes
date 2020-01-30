@@ -6,6 +6,6 @@ export declare class Label extends CSS3DObject {
     constructor();
     readonly style: CSSStyleDeclaration;
     generate(axis: Axis, value: number | string): void;
-    resize(axis: Axis, opposite: Axis, position: number): void;
+    resize(axis: Axis, opposite: Axis, position: number, renderingScale?: number): void;
 }
 //# sourceMappingURL=label.d.ts.map

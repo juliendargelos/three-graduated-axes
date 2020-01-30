@@ -47,7 +47,7 @@ var __assign = function() {
 
 var Axis = /** @class */ (function () {
     function Axis(_a) {
-        var orientation = _a.orientation, spacing = _a.spacing, _b = _a.size, size = _b === void 0 ? 10 : _b, _c = _a.labels, labels = _c === void 0 ? [] : _c, _d = _a.prefix, prefix = _d === void 0 ? '' : _d, _e = _a.suffix, suffix = _e === void 0 ? '' : _e, _f = _a.decimals, decimals = _f === void 0 ? undefined : _f, _g = _a.graduations, graduations = _g === void 0 ? 1 : _g, _h = _a.root, root = _h === void 0 ? false : _h, _j = _a.relative, relative = _j === void 0 ? false : _j, _k = _a.lineWidth, lineWidth = _k === void 0 ? 0.02 : _k, _l = _a.margin, margin = _l === void 0 ? 0.2 : _l, _m = _a.padding, padding = _m === void 0 ? 0 : _m;
+        var orientation = _a.orientation, spacing = _a.spacing, _b = _a.size, size = _b === void 0 ? 10 : _b, _c = _a.labels, labels = _c === void 0 ? [] : _c, _d = _a.prefix, prefix = _d === void 0 ? '' : _d, _e = _a.suffix, suffix = _e === void 0 ? '' : _e, _f = _a.decimals, decimals = _f === void 0 ? undefined : _f, _g = _a.graduations, graduations = _g === void 0 ? 1 : _g, _h = _a.root, root = _h === void 0 ? false : _h, _j = _a.relative, relative = _j === void 0 ? false : _j, _k = _a.lineWidth, lineWidth = _k === void 0 ? 0.02 : _k, _l = _a.progress, progress = _l === void 0 ? 1 : _l, _m = _a.margin, margin = _m === void 0 ? 0.2 : _m, _o = _a.padding, padding = _o === void 0 ? 0 : _o, _p = _a.distance, distance = _p === void 0 ? 0 : _p;
         this.startOffset = 0;
         this.endOffset = 0;
         this.orientation = orientation;
@@ -61,8 +61,10 @@ var Axis = /** @class */ (function () {
         this.root = root;
         this.relative = relative;
         this.lineWidth = lineWidth;
+        this.progress = progress;
         this.margin = margin;
         this.padding = padding;
+        this.distance = distance;
     }
     Axis.prototype.isPrime = function (number) {
         for (var i = 2, s = Math.sqrt(number); i <= s; i++) {
@@ -108,9 +110,9 @@ var Axis = /** @class */ (function () {
         configurable: true
     });
     Axis.prototype.generate = function (values, _a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.targetDensity, targetDensity = _c === void 0 ? 4 : _c, _d = _b.minimumDelta, minimumDelta = _d === void 0 ? 1 : _d, _e = _b.rounding, rounding = _e === void 0 ? 2 : _e, _f = _b.avoidPrime, avoidPrime = _f === void 0 ? true : _f, _g = _b.includeZero, includeZero = _g === void 0 ? false : _g, _h = _b.autoRelative, autoRelative = _h === void 0 ? true : _h, 
+        var _b = _a === void 0 ? {} : _a, _c = _b.targetDensity, targetDensity = _c === void 0 ? 4 : _c, _d = _b.minimumDelta, minimumDelta = _d === void 0 ? 1 : _d, _e = _b.rounding, rounding = _e === void 0 ? 2 : _e, _f = _b.avoidPrime, avoidPrime = _f === void 0 ? true : _f, _g = _b.includeZero, includeZero = _g === void 0 ? false : _g, _h = _b.autoRelative, autoRelative = _h === void 0 ? true : _h, _j = _b.minimumOffset, minimumOffset = _j === void 0 ? 0 : _j, _k = _b.maximumOffset, maximumOffset = _k === void 0 ? 0 : _k, 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _j = _b.symmetric // TODO
+        _l = _b.symmetric // TODO
         ; 
         this.reset();
         var firstValue = values[0];
@@ -129,6 +131,8 @@ var Axis = /** @class */ (function () {
             if (valueDelta && valueDelta < delta)
                 delta = valueDelta;
         });
+        minimum -= minimumOffset;
+        maximum += maximumOffset;
         if (autoRelative)
             this.relative = minimum < 0 && maximum > 0;
         var range = maximum - minimum;
@@ -179,38 +183,10 @@ var Axis = /** @class */ (function () {
     Axis.prototype.reset = function () {
         this.startOffset = this.endOffset = 0;
         this.labels.splice(0);
-        this.graduations = 1;
         this.root = false;
         this.relative = false;
     };
     return Axis;
-}());
-
-var CSSStyle = /** @class */ (function () {
-    function CSSStyle() {
-        this.id = Date.now() + "-" + ~~(Math.random() * 1000);
-    }
-    CSSStyle.prototype.property = function (name) {
-        return "--" + name + "-" + this.id;
-    };
-    CSSStyle.prototype.get = function (property) {
-        return document.body.style.getPropertyValue(this.property(property));
-    };
-    CSSStyle.prototype.set = function (property, value) {
-        document.body.style.setProperty(this.property(property), value);
-        return this;
-    };
-    CSSStyle.prototype.bind = function (style) {
-        var _this = this;
-        var properties = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            properties[_i - 1] = arguments[_i];
-        }
-        properties.forEach(function (property) {
-            style.setProperty(property, "var(" + _this.property(property) + ")");
-        });
-    };
-    return CSSStyle;
 }());
 
 var Label = /** @class */ (function (_super) {
@@ -235,21 +211,24 @@ var Label = /** @class */ (function (_super) {
             Math.pow(10, axis.decimals));
         this.content.textContent = "" + axis.prefix + (rounding ? Math.round(value * rounding) / rounding : value) + axis.suffix;
     };
-    Label.prototype.resize = function (axis, opposite, position) {
+    Label.prototype.resize = function (axis, opposite, position, renderingScale) {
+        if (renderingScale === void 0) { renderingScale = 10; }
+        var oppositeRelative = !!opposite.rootPosition;
         var rootPosition = (opposite.rootPosition - 0.5) * opposite.size;
         position = (position / (axis.labels.length - 1) - 0.5) * axis.size;
-        var spacingX = axis.spacing.x * (opposite.relative || !axis.orientation.x);
-        var spacingY = axis.spacing.y * (opposite.relative || !axis.orientation.y);
+        var spacingX = axis.spacing.x * (oppositeRelative || !axis.orientation.x);
+        var spacingY = axis.spacing.y * (oppositeRelative || !axis.orientation.y);
         this.content.style.transform = "translate(" + 50 * spacingX + "%, " + -50 * spacingY + "%)";
         this.position
-            .setX(axis.orientation.x * position +
+            .setX(renderingScale * (axis.orientation.x * position +
             axis.orientation.y * rootPosition +
             axis.margin * spacingX -
-            axis.padding * axis.orientation.y * !opposite.relative)
-            .setY(axis.orientation.y * position +
+            axis.padding * axis.orientation.y * (1 - oppositeRelative)))
+            .setY(renderingScale * (axis.orientation.y * position +
             axis.orientation.x * rootPosition +
             axis.margin * spacingY -
-            axis.padding * axis.orientation.x * !opposite.relative);
+            axis.padding * axis.orientation.x * (1 - oppositeRelative)))
+            .setZ(axis.distance * renderingScale);
     };
     return Label;
 }(CSS3DRenderer.CSS3DObject));
@@ -257,19 +236,24 @@ var Label = /** @class */ (function (_super) {
 var Labels = /** @class */ (function (_super) {
     __extends(Labels, _super);
     function Labels(_a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.opacity, opacity = _c === void 0 ? 1 : _c, _d = _b.color, color = _d === void 0 ? '#aaaaaa' : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 0.1 : _e, _f = _b.fontFamily, fontFamily = _f === void 0 ? 'sans-serif' : _f, _g = _b.faceCamera, faceCamera = _g === void 0 ? false : _g;
+        var _b = _a === void 0 ? {} : _a, _c = _b.opacity, opacity = _c === void 0 ? 1 : _c, _d = _b.color, color = _d === void 0 ? '#ffffff' : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 0.3 : _e, _f = _b.fontFamily, fontFamily = _f === void 0 ? 'sans-serif' : _f, _g = _b.faceCamera, faceCamera = _g === void 0 ? false : _g, _h = _b.renderingScale, renderingScale = _h === void 0 ? 100 : _h;
         var _this = _super.call(this) || this;
-        _this.cssStyle = new CSSStyle().set('white-space', 'nowrap');
-        _this.onBeforeRender = function (_, __, camera) {
-            _this.faceCamera && _this.children.forEach(function (label) {
-                label.lookAt(camera.position);
-            });
-        };
+        _this.css3DRenderer = new CSS3DRenderer.CSS3DRenderer();
+        _this.originalMatrix = new three.Matrix4();
+        _this.style = _this.css3DRenderer.domElement.style;
         _this.opacity = opacity;
         _this.color = color;
         _this.fontSize = fontSize;
         _this.fontFamily = fontFamily;
         _this.faceCamera = faceCamera;
+        _this.renderingScale = renderingScale;
+        _this.matrixAutoUpdate = false;
+        _this.style.position = 'absolute';
+        _this.style.pointerEvents = 'none';
+        _this.style.top =
+            _this.style.left = '0';
+        _this.style.zIndex = '2';
+        document.body.appendChild(_this.css3DRenderer.domElement);
         return _this;
     }
     Labels.prototype.iterate = function (x, y, callback) {
@@ -280,50 +264,35 @@ var Labels = /** @class */ (function (_super) {
             }, index);
         }, 0);
     };
-    Labels.prototype.addLabel = function () {
-        var label = new Label();
-        this.cssStyle.bind(label.style, 'opacity', 'color', 'visibility', 'white-space', 'transform', 'font-size', 'font-family');
-        this.add(label);
-        return label;
+    Labels.prototype.scaleFont = function () {
+        this.style.fontSize = this.fontSize * this.renderingScale + "px";
     };
     Object.defineProperty(Labels.prototype, "opacity", {
         get: function () {
-            return parseFloat(this.cssStyle.get('opacity'));
+            return parseFloat(this.style.opacity);
         },
         set: function (opacity) {
-            this.cssStyle.set('opacity', opacity);
+            this.style.opacity = opacity;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(Labels.prototype, "color", {
         get: function () {
-            return this.cssStyle.get('color');
+            return this.style.color;
         },
         set: function (color) {
-            this.cssStyle.set('color', color);
+            this.style.color = color;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(Labels.prototype, "fontFamily", {
         get: function () {
-            return this.cssStyle.get('font-family');
+            return this.style.fontFamily;
         },
         set: function (fontFamily) {
-            this.cssStyle.set('font-family', fontFamily);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Labels.prototype, "fontSize", {
-        get: function () {
-            return Math.sqrt(parseFloat(this.cssStyle.get('font-size')) / 2);
-        },
-        set: function (fontSize) {
-            this.cssStyle
-                .set('font-size', fontSize * fontSize * 2 + "px")
-                .set('transform', "scale(" + Math.sqrt(fontSize) / 10 + ")");
+            this.style.fontFamily = fontFamily;
         },
         enumerable: true,
         configurable: true
@@ -341,29 +310,60 @@ var Labels = /** @class */ (function (_super) {
     });
     Object.defineProperty(Labels.prototype, "visible", {
         get: function () {
-            return this.cssStyle && this.cssStyle.get('visibility') !== 'hidden';
+            return this.style ? this.style.display !== 'none' : true;
         },
         set: function (visible) {
-            this.cssStyle && this.cssStyle.set('visibility', visible ? 'visible' : 'hidden');
+            if (this.style)
+                this.style.visibility = visible ? null : 'none';
         },
         enumerable: true,
         configurable: true
     });
+    Labels.prototype.setRendererSize = function (width, height) {
+        this.css3DRenderer.setSize(width, height);
+    };
+    Labels.prototype.render = function (camera) {
+        var parent = this.parent;
+        var xCamera = camera.position.x;
+        var yCamera = camera.position.y;
+        var zCamera = camera.position.z;
+        this.originalMatrix.copy(this.matrix);
+        this.parent = null;
+        camera.position.multiplyScalar(this.renderingScale);
+        this.updateWorldMatrix(true, false);
+        parent.updateWorldMatrix(true, false);
+        this.applyMatrix(parent.matrixWorld);
+        this.updateWorldMatrix(false, false);
+        this.faceCamera && this.children.forEach(function (label) {
+            label.lookAt(camera.position);
+        });
+        this.position.multiplyScalar(this.renderingScale);
+        this.updateMatrix();
+        this.updateMatrixWorld(true);
+        this.css3DRenderer.render(this, camera);
+        camera.position.set(xCamera, yCamera, zCamera);
+        this.parent = parent;
+        this.matrix.copy(this.originalMatrix);
+        this.matrix.decompose(this.position, this.quaternion, this.scale);
+    };
     Labels.prototype.generate = function (x, y) {
         var _this = this;
+        this.scaleFont();
         this.children
             .slice(this.iterate(x, y, function (axis, opposite, index, position, value) {
-            var label = _this.children[index] || _this.addLabel();
+            var label = _this.children[index];
+            label || _this.add(label = new Label());
             label.generate(axis, value);
-            label.resize(axis, opposite, position);
+            label.resize(axis, opposite, position, _this.renderingScale);
         }))
             .forEach(function (label) { return _this.remove(label); });
     };
     Labels.prototype.resize = function (x, y) {
         var _this = this;
+        this.scaleFont();
         this.iterate(x, y, function (axis, opposite, index, position) {
             var label = _this.children[index];
-            label && label.resize(axis, opposite, position);
+            label && label.resize(axis, opposite, position, _this.renderingScale);
         });
     };
     return Labels;
@@ -374,7 +374,6 @@ var Graduations = /** @class */ (function (_super) {
     function Graduations() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.graduations = [];
-        _this.container = new three.Box2(new three.Vector2(), new three.Vector2());
         return _this;
     }
     Graduations.prototype.generate = function (x, y) {
@@ -425,42 +424,91 @@ var Graduations = /** @class */ (function (_super) {
         var yHalfSize = y.size / 2;
         var xFactor = x.size / Math.max(1, xGraduations - 1);
         var yFactor = y.size / Math.max(1, yGraduations - 1);
-        var xPaddedHalfSize = xHalfSize + y.padding;
-        var yPaddedHalfSize = yHalfSize + x.padding;
+        var xHalfPaddedSize = xHalfSize + y.padding;
+        var yHalfPaddedSize = yHalfSize + x.padding;
         var xHalfLineWidth = x.lineWidth / 2;
         var yHalfLineWidth = y.lineWidth / 2;
+        var xHalfOuterSize = xHalfPaddedSize + xHalfLineWidth;
+        var yHalfOuterSize = yHalfPaddedSize + yHalfLineWidth;
         var xRootPosition = xGraduations === 1 ? x.rootPosition * x.size : 0;
         var yRootPosition = yGraduations === 1 ? y.rootPosition * y.size : 0;
+        var xProgress = x.progress * 2;
+        var yProgress = y.progress * 2;
         var index = 0;
         for (var i = 0; i < xGraduations; i++) {
             var position = i * xFactor - xHalfSize + xRootPosition;
             vertices[index] = vertices[index + 9] = position - xHalfLineWidth;
             vertices[index + 3] = vertices[index + 6] = position + xHalfLineWidth;
-            vertices[index + 7] = vertices[index + 10] = -yPaddedHalfSize;
-            vertices[index + 1] = vertices[index + 4] = yPaddedHalfSize;
+            vertices[index + 7] = vertices[index + 10] = -yHalfOuterSize;
+            vertices[index + 1] = vertices[index + 4] = -yHalfOuterSize + (yHalfOuterSize * xProgress);
             index += 12;
         }
         for (var i = 0; i < yGraduations; i++) {
             var position = i * yFactor - yHalfSize + yRootPosition;
-            vertices[index] = vertices[index + 9] = -xPaddedHalfSize;
-            vertices[index + 3] = vertices[index + 6] = xPaddedHalfSize;
             vertices[index + 7] = vertices[index + 10] = position - yHalfLineWidth;
             vertices[index + 1] = vertices[index + 4] = position + yHalfLineWidth;
+            vertices[index] = vertices[index + 9] = -xHalfOuterSize;
+            vertices[index + 3] = vertices[index + 6] = -xHalfOuterSize + (xHalfOuterSize * yProgress);
             index += 12;
         }
         positionAttribute.needsUpdate = true;
-        this.container.min.set(x.startOffset * x.size - xHalfSize, y.startOffset * y.size - yHalfSize);
-        this.container.max.set(xHalfSize - x.endOffset * x.size, yHalfSize - y.endOffset * y.size);
     };
     return Graduations;
 }(three.BufferGeometry));
 
+var Container = /** @class */ (function (_super) {
+    __extends(Container, _super);
+    function Container(points) {
+        var _this = _super.call(this) || this;
+        _this._size = new three.Vector2();
+        points && _this.setFromPoints(points);
+        return _this;
+    }
+    Object.defineProperty(Container.prototype, "size", {
+        get: function () {
+            return this.getSize(this._size);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Container.prototype.normalizePoint = function (point, target) {
+        if (target === void 0) { target = new three.Vector2(); }
+        return target
+            .subVectors(point, this.min)
+            .divide(this.size);
+    };
+    Container.prototype.interpolatePoint = function (point, container, target) {
+        if (target === void 0) { target = new three.Vector2(); }
+        return (container ? container.normalizePoint(point, target) : target)
+            .multiply(this.size)
+            .add(this.min);
+    };
+    Container.prototype.interpolatePoints = function (points, targets) {
+        var _this = this;
+        if (targets === void 0) { targets = points.map(function () { return new three.Vector2(); }); }
+        var container = new Container(points);
+        points.some(function (point, index) {
+            if (index >= targets.length)
+                return true;
+            _this.interpolatePoint(point, container, targets[index]);
+        });
+        return targets;
+    };
+    Container.prototype.resize = function (x, y) {
+        var xHalfSize = x.size / 2;
+        var yHalfSize = y.size / 2;
+        this.min.set(x.startOffset * x.size - xHalfSize, y.startOffset * y.size - yHalfSize);
+        this.max.set(xHalfSize - x.endOffset * x.size, yHalfSize - y.endOffset * y.size);
+    };
+    return Container;
+}(three.Box2));
+
 var Axes = /** @class */ (function (_super) {
     __extends(Axes, _super);
     function Axes(_a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xaaaaaa : _g, _h = _b.autoRenderCSS3D, autoRenderCSS3D = _h === void 0 ? true : _h;
+        var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xffffff : _g, _h = _b.generate, generate = _h === void 0 ? true : _h;
         var _this = _super.call(this, new Graduations()) || this;
-        _this.onBeforeRender = function (renderer, scene, camera) { return _this.labels.onBeforeRender(renderer, scene, camera); };
+        _this.container = new Container();
         _this.x = new Axis(__assign({}, x, { orientation: new three.Vector2(1, 0), spacing: new three.Vector2(1, -1) }));
         _this.y = new Axis(__assign({}, y, { orientation: new three.Vector2(0, 1), spacing: new three.Vector2(-1, 1) }));
         _this.graduations = _this.geometry;
@@ -468,10 +516,7 @@ var Axes = /** @class */ (function (_super) {
         _this.opacity = opacity;
         _this.color.set(color);
         _this.add(_this.labels);
-        autoRenderCSS3D && _this.autoRenderCSS3D(autoRenderCSS3D === true
-            ? _this
-            : autoRenderCSS3D);
-        _this.generate();
+        generate && _this.generate();
         return _this;
     }
     Object.defineProperty(Axes.prototype, "visible", {
@@ -527,61 +572,17 @@ var Axes = /** @class */ (function (_super) {
     };
     Axes.prototype.generateGraduations = function () {
         this.graduations.generate(this.x, this.y);
+        this.container.resize(this.x, this.y);
     };
     Axes.prototype.resizeGraduations = function () {
         this.graduations.resize(this.x, this.y);
+        this.container.resize(this.x, this.y);
     };
     Axes.prototype.generateLabels = function () {
         this.labels.generate(this.x, this.y);
     };
     Axes.prototype.resizeLabels = function () {
         this.labels.resize(this.x, this.y);
-    };
-    Axes.prototype.autoRenderCSS3D = function (scene) {
-        var css3DRenderer = new CSS3DRenderer.CSS3DRenderer();
-        var rendererSize = new three.Vector2();
-        css3DRenderer.domElement.style.position = 'absolute';
-        css3DRenderer.domElement.style.pointerEvents = 'none';
-        css3DRenderer.domElement.style.top =
-            css3DRenderer.domElement.style.left = '0';
-        css3DRenderer.domElement.style.zIndex = '2';
-        scene.onAfterRender = function (renderer, scene, camera) {
-            renderer.getSize(rendererSize);
-            css3DRenderer.setSize(rendererSize.x, rendererSize.y);
-            css3DRenderer.render(scene, camera);
-        };
-        document.body.appendChild(css3DRenderer.domElement);
-    };
-    Axes.prototype.interpolateValue = function (value, minimum, maximum, axis) {
-        return (value - minimum) / (maximum - minimum) * (this.graduations.container.max[axis] -
-            this.graduations.container.min[axis]) + this.graduations.container.min[axis];
-    };
-    Axes.prototype.interpolate = function (values, points) {
-        var _this = this;
-        if (points === void 0) { points = []; }
-        points.length > values.length && points.splice(values.length);
-        while (points.length < values.length)
-            points.push(new three.Vector2());
-        var xMinimum = Infinity;
-        var yMinimum = Infinity;
-        var xMaximum = -Infinity;
-        var yMaximum = -Infinity;
-        values.forEach(function (_a) {
-            var x = _a.x, y = _a.y;
-            if (x < xMinimum)
-                xMinimum = x;
-            if (x > xMaximum)
-                xMaximum = x;
-            if (y < yMinimum)
-                yMinimum = y;
-            if (y > yMaximum)
-                yMaximum = y;
-        });
-        values.forEach(function (_a, index) {
-            var x = _a.x, y = _a.y;
-            return points[index].set(_this.interpolateValue(x, xMinimum, xMaximum, 'x'), _this.interpolateValue(y, yMinimum, yMaximum, 'y'));
-        });
-        return points;
     };
     return Axes;
 }(three.Mesh));

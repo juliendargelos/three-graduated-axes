@@ -10,8 +10,10 @@ export interface AxisParameters {
   root: boolean
   relative: boolean
   lineWidth: number
+  progress: number
   margin: number
   padding: number
+  distance: number
 }
 
 export interface AxisGenerateParameters {
@@ -22,6 +24,8 @@ export interface AxisGenerateParameters {
   includeZero: boolean
   autoRelative: boolean
   symmetric: boolean
+  minimumOffset: number
+  maximumOffset: number
 }
 
 export class Axis implements AxisParameters {
@@ -36,8 +40,10 @@ export class Axis implements AxisParameters {
   public graduations: number
   public root: boolean
   public lineWidth: number
+  public progress: number
   public margin: number
   public padding: number
+  public distance: number
   public rootPosition!: number
   public startOffset: number = 0
   public endOffset: number = 0
@@ -54,8 +60,10 @@ export class Axis implements AxisParameters {
     root = false,
     relative = false,
     lineWidth = 0.02,
+    progress = 1,
     margin = 0.2,
-    padding = 0
+    padding = 0,
+    distance = 0
   }: Partial<AxisParameters> & {
     orientation: Vector2
     spacing: Vector2
@@ -71,8 +79,10 @@ export class Axis implements AxisParameters {
     this.root = root
     this.relative = relative
     this.lineWidth = lineWidth
+    this.progress = progress
     this.margin = margin
     this.padding = padding
+    this.distance = distance
   }
 
   private isPrime(number: number): boolean {
@@ -124,6 +134,8 @@ export class Axis implements AxisParameters {
     avoidPrime = true,
     includeZero = false,
     autoRelative = true,
+    minimumOffset = 0,
+    maximumOffset = 0,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     symmetric = false // TODO
   }: Partial<AxisGenerateParameters> = {}): void {
@@ -144,6 +156,9 @@ export class Axis implements AxisParameters {
       const valueDelta = Math.abs(value - firstValue)
       if (valueDelta && valueDelta < delta) delta = valueDelta
     })
+
+    minimum -= minimumOffset
+    maximum += maximumOffset
 
     if (autoRelative) this.relative = minimum < 0 && maximum > 0
 
@@ -214,7 +229,6 @@ export class Axis implements AxisParameters {
   public reset(): void {
     this.startOffset = this.endOffset = 0
     this.labels.splice(0)
-    this.graduations = 1
     this.root = false
     this.relative = false
   }
