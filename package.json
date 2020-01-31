@@ -1,6 +1,6 @@
 {
   "name": "three-graduated-axes",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Generate and manipulate x/y axes graduations and labels.",
   "author": "Julien Dargelos <contact@juliendargelos.com>",
   "license": "MIT",
