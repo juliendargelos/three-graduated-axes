@@ -490,7 +490,17 @@ var Container = /** @class */ (function (_super) {
         points.some(function (point, index) {
             if (index >= targets.length)
                 return true;
-            _this.interpolatePoint(point, container, targets[index]);
+            var pointValue = {
+                x: parseFloat(point.x),
+                y: parseFloat(point.y)
+            };
+            if (isNaN(pointValue.x)) {
+                pointValue.x = index / (points.length - 1);
+            }
+            if (isNaN(pointValue.y)) {
+                pointValue.y = index / (points.length - 1);
+            }
+            _this.interpolatePoint(pointValue, container, targets[index]);
         });
         return targets;
     };

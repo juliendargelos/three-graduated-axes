@@ -40,7 +40,21 @@ export class Container extends Box2 {
 
     points.some((point, index) => {
       if (index >= targets.length) return true
-      this.interpolatePoint(point, container, targets[index])
+
+      const pointValue = {
+        x: parseFloat(point.x as unknown as string),
+        y: parseFloat(point.y as unknown as string)
+      }
+
+      if (isNaN(pointValue.x)) {
+        pointValue.x = index / (points.length - 1)
+      }
+
+      if (isNaN(pointValue.y)) {
+        pointValue.y = index / (points.length - 1)
+      }
+
+      this.interpolatePoint(pointValue, container, targets[index])
     })
 
     return targets
