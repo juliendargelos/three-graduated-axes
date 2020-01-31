@@ -21,8 +21,8 @@ export declare class Axes extends Mesh {
     color: Color;
     opacity: number;
     generate(values?: ({
-        x: number;
-        y: number;
+        x: number | string;
+        y: number | string;
     })[], { x, y }?: {
         x?: Partial<AxisGenerateParameters>;
         y?: Partial<AxisGenerateParameters>;

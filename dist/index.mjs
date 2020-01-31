@@ -550,14 +550,16 @@ var Axes = /** @class */ (function (_super) {
     Axes.prototype.generate = function (values, _a) {
         var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d;
         if (values) {
-            this.x.generate(values.map(function (_a) {
+            var xValues = values.map(function (_a) {
                 var x = _a.x;
-                return x;
-            }), x);
-            this.y.generate(values.map(function (_a) {
+                return parseFloat(x);
+            });
+            var yValues = values.map(function (_a) {
                 var y = _a.y;
-                return y;
-            }), y);
+                return parseFloat(y);
+            });
+            xValues.includes(NaN) || this.x.generate(xValues, x);
+            yValues.includes(NaN) || this.y.generate(yValues, y);
         }
         this.generateGraduations();
         this.generateLabels();

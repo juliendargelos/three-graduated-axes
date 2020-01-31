@@ -73,13 +73,19 @@ export class Axes extends Mesh {
     ;(this.material as MeshBasicMaterial).opacity = opacity
   }
 
-  public generate(values?: ({ x: number, y: number })[], { x = {}, y = {} }: {
-    x?: Partial<AxisGenerateParameters>
-    y?: Partial<AxisGenerateParameters>
-  } = {}): void {
+  public generate(
+    values?: ({ x: number | string, y: number | string })[],
+    { x = {}, y = {} }: {
+      x?: Partial<AxisGenerateParameters>
+      y?: Partial<AxisGenerateParameters>
+    } = {}
+  ): void {
     if (values) {
-      this.x.generate(values.map(({ x }) => x), x)
-      this.y.generate(values.map(({ y }) => y), y)
+      const xValues = values.map(({ x }) => parseFloat(x as string))
+      const yValues = values.map(({ y }) => parseFloat(y as string))
+
+      xValues.includes(NaN) || this.x.generate(xValues, x)
+      yValues.includes(NaN) || this.y.generate(yValues, y)
     }
 
     this.generateGraduations()
