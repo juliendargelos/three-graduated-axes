@@ -91,7 +91,7 @@ export class Axes extends Mesh {
       else this.x.generate(xValues, x)
 
       if (yValues.includes(NaN)) this.y.labels = yLabels
-      else this.x.generate(yValues, y)
+      else this.y.generate(yValues, y)
     }
 
     this.generateGraduations()
