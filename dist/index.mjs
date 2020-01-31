@@ -565,7 +565,7 @@ var Axes = /** @class */ (function (_super) {
             else
                 this.x.generate(xValues, x);
             if (yValues.includes(NaN))
-                this.x.labels = yLabels;
+                this.y.labels = yLabels;
             else
                 this.x.generate(yValues, y);
         }

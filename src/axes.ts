@@ -90,7 +90,7 @@ export class Axes extends Mesh {
       if (xValues.includes(NaN)) this.x.labels = xLabels
       else this.x.generate(xValues, x)
 
-      if (yValues.includes(NaN)) this.x.labels = yLabels
+      if (yValues.includes(NaN)) this.y.labels = yLabels
       else this.x.generate(yValues, y)
     }
 
