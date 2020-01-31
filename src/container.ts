@@ -6,7 +6,22 @@ export class Container extends Box2 {
 
   public constructor(points?: ({ x: number, y: number })[]) {
     super()
-    points && this.setFromPoints(points as Vector2[])
+
+    if (points) {
+      const pointValues = points.map(({ x, y }, index) => {
+        const pointValue = {
+          x: parseFloat(x as unknown as string),
+          y: parseFloat(y as unknown as string)
+        }
+
+        if (isNaN(pointValue.x)) pointValue.x = index / (points.length - 1)
+        if (isNaN(pointValue.y)) pointValue.y = index / (points.length - 1)
+
+        return pointValue
+      })
+
+      this.setFromPoints(pointValues as Vector2[])
+    }
   }
 
   public get size(): Vector2 {

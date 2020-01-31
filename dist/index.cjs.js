@@ -461,7 +461,21 @@ var Container = /** @class */ (function (_super) {
     function Container(points) {
         var _this = _super.call(this) || this;
         _this._size = new three.Vector2();
-        points && _this.setFromPoints(points);
+        if (points) {
+            var pointValues = points.map(function (_a, index) {
+                var x = _a.x, y = _a.y;
+                var pointValue = {
+                    x: parseFloat(x),
+                    y: parseFloat(y)
+                };
+                if (isNaN(pointValue.x))
+                    pointValue.x = index / (points.length - 1);
+                if (isNaN(pointValue.y))
+                    pointValue.y = index / (points.length - 1);
+                return pointValue;
+            });
+            _this.setFromPoints(pointValues);
+        }
         return _this;
     }
     Object.defineProperty(Container.prototype, "size", {
