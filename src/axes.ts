@@ -81,11 +81,17 @@ export class Axes extends Mesh {
     } = {}
   ): void {
     if (values) {
-      const xValues = values.map(({ x }) => parseFloat(x as string))
-      const yValues = values.map(({ y }) => parseFloat(y as string))
+      const xLabels = values.map(({ x }) => x)
+      const yLabels = values.map(({ y }) => y)
 
-      xValues.includes(NaN) || this.x.generate(xValues, x)
-      yValues.includes(NaN) || this.y.generate(yValues, y)
+      const xValues = (xLabels as string[]).map(parseFloat)
+      const yValues = (yLabels as string[]).map(parseFloat)
+
+      if (xValues.includes(NaN)) this.x.labels = xLabels
+      else this.x.generate(xValues, x)
+
+      if (yValues.includes(NaN)) this.x.labels = yLabels
+      else this.x.generate(yValues, y)
     }
 
     this.generateGraduations()

@@ -554,16 +554,24 @@ var Axes = /** @class */ (function (_super) {
     Axes.prototype.generate = function (values, _a) {
         var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d;
         if (values) {
-            var xValues = values.map(function (_a) {
+            var xLabels = values.map(function (_a) {
                 var x = _a.x;
-                return parseFloat(x);
+                return x;
             });
-            var yValues = values.map(function (_a) {
+            var yLabels = values.map(function (_a) {
                 var y = _a.y;
-                return parseFloat(y);
+                return y;
             });
-            xValues.includes(NaN) || this.x.generate(xValues, x);
-            yValues.includes(NaN) || this.y.generate(yValues, y);
+            var xValues = xLabels.map(parseFloat);
+            var yValues = yLabels.map(parseFloat);
+            if (xValues.includes(NaN))
+                this.x.labels = xLabels;
+            else
+                this.x.generate(xValues, x);
+            if (yValues.includes(NaN))
+                this.x.labels = yLabels;
+            else
+                this.x.generate(yValues, y);
         }
         this.generateGraduations();
         this.generateLabels();
