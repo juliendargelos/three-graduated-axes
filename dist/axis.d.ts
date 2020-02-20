@@ -49,6 +49,7 @@ export declare class Axis implements AxisParameters {
         spacing: Vector2;
     });
     private isPrime;
+    private adjustDelta;
     private updateRootPosition;
     labels: (number | string)[];
     relative: boolean;

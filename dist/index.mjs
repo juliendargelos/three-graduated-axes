@@ -69,6 +69,12 @@ var Axis = /** @class */ (function () {
         }
         return number > 1;
     };
+    Axis.prototype.adjustDelta = function (delta, minimumDelta, range, targetDensity) {
+        var halfRange = range / 2;
+        delta = Math.max(minimumDelta, delta);
+        delta *= range / delta / targetDensity;
+        return delta >= halfRange ? halfRange : delta;
+    };
     Axis.prototype.updateRootPosition = function () {
         if (!this.relative) {
             this.rootPosition = 0;
@@ -113,7 +119,7 @@ var Axis = /** @class */ (function () {
         this.reset();
         var minimum = Infinity;
         var maximum = -Infinity;
-        var delta = Infinity;
+        var baseDelta = Infinity;
         var startOffset = 0;
         var endOffset = 0;
         var round = function (value) { return value; };
@@ -124,54 +130,51 @@ var Axis = /** @class */ (function () {
                 maximum = value;
             values.forEach(function (otherValue) {
                 var valueDelta = Math.abs(value - otherValue);
-                if (valueDelta && valueDelta < delta)
-                    delta = valueDelta;
+                if (valueDelta && valueDelta < baseDelta)
+                    baseDelta = valueDelta;
             });
         });
         minimum -= minimumOffset;
         maximum += maximumOffset;
         var range = maximum - minimum;
-        delta = Math.max(minimumDelta, delta);
-        delta *= range / delta / targetDensity;
-        if (delta >= range / 2)
-            delta = range / 2;
+        var delta = this.adjustDelta(baseDelta, minimumDelta, range, targetDensity);
         if (autoRelative)
             this.relative = minimum < 0 && maximum > 0;
-        if (rounding) {
+        if (rounding !== undefined) {
             var roundingFactor_1 = Math.pow(10, rounding);
             round = function (value) { return Math.round(value * roundingFactor_1) / roundingFactor_1; };
-            delta = round(delta);
-            var shiftedMinimum = Math.floor(minimum * roundingFactor_1) / roundingFactor_1;
+            var shiftedMinimum = ~~(minimum * roundingFactor_1) / roundingFactor_1;
             shiftedMinimum !== minimum && minimum--;
             startOffset += minimum - shiftedMinimum;
             minimum = shiftedMinimum;
             range += startOffset;
+            delta = round(this.adjustDelta(baseDelta, minimumDelta, range, targetDensity));
         }
-        var amount = range / delta + 1;
-        var shiftedAmount = Math.ceil(amount);
+        var baseAmount = range / delta + 1;
+        var amount = Math.ceil(baseAmount);
         if (avoidPrime) {
-            while (this.isPrime(shiftedAmount + 1))
-                shiftedAmount++;
+            while (this.isPrime(amount + 1))
+                amount++;
         }
-        endOffset = (shiftedAmount - amount) * delta || 0;
+        endOffset = (amount - baseAmount) * delta || 0;
         maximum += endOffset;
         range += endOffset;
         if (includeZero || (autoRelative && this.relative)) {
             var relativeOffset = Infinity;
-            for (var i = 0; relativeOffset && i < shiftedAmount; i++) {
+            for (var i = 0; relativeOffset && i < amount; i++) {
                 var value = minimum + i * delta;
-                if (Math.abs(value) < Math.abs(relativeOffset)) {
+                if (Math.abs(value) < Math.abs(relativeOffset))
                     relativeOffset = value;
-                }
             }
             if (relativeOffset < 0)
                 relativeOffset += delta;
             minimum -= relativeOffset;
             startOffset += relativeOffset;
             range += relativeOffset;
+            delta = round(this.adjustDelta(baseDelta, minimumDelta, range, targetDensity));
         }
         var labels = [];
-        for (var i = 0; i < shiftedAmount; i++) {
+        for (var i = 0; i < amount; i++) {
             labels.push(round(minimum + i * delta));
         }
         this.startOffset = startOffset / range;

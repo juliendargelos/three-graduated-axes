@@ -93,6 +93,18 @@ export class Axis implements AxisParameters {
     return number > 1
   }
 
+  private adjustDelta(
+    delta: number,
+    minimumDelta: number,
+    range: number,
+    targetDensity: number
+  ): number {
+    const halfRange = range / 2
+    delta = Math.max(minimumDelta, delta)
+    delta *= range / delta / targetDensity
+    return delta >= halfRange ? halfRange : delta
+  }
+
   private updateRootPosition(): void {
     if (!this.relative) {
       this.rootPosition = 0
@@ -143,7 +155,7 @@ export class Axis implements AxisParameters {
 
     let minimum = Infinity
     let maximum = -Infinity
-    let delta = Infinity
+    let baseDelta = Infinity
     let startOffset = 0
     let endOffset = 0
     let round = (value: number): number => value
@@ -154,7 +166,7 @@ export class Axis implements AxisParameters {
 
       values.forEach((otherValue) => {
         const valueDelta = Math.abs(value - otherValue)
-        if (valueDelta && valueDelta < delta) delta = valueDelta
+        if (valueDelta && valueDelta < baseDelta) baseDelta = valueDelta
       })
     })
 
@@ -162,21 +174,22 @@ export class Axis implements AxisParameters {
     maximum += maximumOffset
 
     let range = maximum - minimum
-    delta = Math.max(minimumDelta, delta)
-    delta *= range / delta / targetDensity
+    let delta = this.adjustDelta(
+      baseDelta,
+      minimumDelta,
+      range,
+      targetDensity
+    )
 
-    if (delta >= range / 2) delta = range / 2
     if (autoRelative) this.relative = minimum < 0 && maximum > 0
 
-    if (rounding) {
+    if (rounding !== undefined) {
       const roundingFactor = Math.pow(10, rounding)
       round = (value: number) => Math.round(
         value * roundingFactor
       ) / roundingFactor
 
-      delta = round(delta)
-
-      let shiftedMinimum = Math.floor(
+      let shiftedMinimum = ~~(
         minimum * roundingFactor
       ) / roundingFactor
 
@@ -184,28 +197,31 @@ export class Axis implements AxisParameters {
       startOffset += minimum - shiftedMinimum
       minimum = shiftedMinimum
       range += startOffset
+      delta = round(this.adjustDelta(
+        baseDelta,
+        minimumDelta,
+        range,
+        targetDensity
+      ))
     }
 
-    const amount = range / delta + 1
-    let shiftedAmount = Math.ceil(amount)
+    const baseAmount = range / delta + 1
+    let amount = Math.ceil(baseAmount)
 
     if (avoidPrime) {
-      while (this.isPrime(shiftedAmount + 1)) shiftedAmount++
+      while (this.isPrime(amount + 1)) amount++
     }
 
-    endOffset = (shiftedAmount - amount) * delta || 0
+    endOffset = (amount - baseAmount) * delta || 0
     maximum += endOffset
     range += endOffset
 
     if (includeZero || (autoRelative && this.relative)) {
       let relativeOffset = Infinity
 
-      for (var i = 0; relativeOffset && i < shiftedAmount; i++) {
+      for (var i = 0; relativeOffset && i < amount; i++) {
         const value = minimum + i * delta
-
-        if (Math.abs(value) < Math.abs(relativeOffset)) {
-          relativeOffset = value
-        }
+        if (Math.abs(value) < Math.abs(relativeOffset)) relativeOffset = value
       }
 
       if (relativeOffset < 0) relativeOffset += delta
@@ -213,11 +229,17 @@ export class Axis implements AxisParameters {
       minimum -= relativeOffset
       startOffset += relativeOffset
       range += relativeOffset
+      delta = round(this.adjustDelta(
+        baseDelta,
+        minimumDelta,
+        range,
+        targetDensity
+      ))
     }
 
     const labels: number[] = []
 
-    for (var i = 0; i < shiftedAmount; i++) {
+    for (var i = 0; i < amount; i++) {
       labels.push(round(minimum + i * delta))
     }
 
