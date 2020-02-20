@@ -89,6 +89,11 @@
           }
         })
 
+        const r = n => n // Math.round(n * 100) / 100
+        console.log('value', values.map(({ x, y }) => [r(x), r(y)]))
+        console.log('x', Math.min(...values.map(({ x }) => r(x))), Math.max(...values.map(({ x }) => r(x))))
+        console.log('y', Math.min(...values.map(({ y }) => r(y))), Math.max(...values.map(({ y }) => r(y))))
+
         values.sort(({ x: a }, { x: b }) => a - b)
         axes.generate(values, options)
         generateCurve()

@@ -115,7 +115,6 @@ var Axis = /** @class */ (function () {
         _l = _b.symmetric // TODO
         ; 
         this.reset();
-        var firstValue = values[0];
         var minimum = Infinity;
         var maximum = -Infinity;
         var delta = Infinity;
@@ -127,24 +126,27 @@ var Axis = /** @class */ (function () {
                 minimum = value;
             if (value > maximum)
                 maximum = value;
-            var valueDelta = Math.abs(value - firstValue);
-            if (valueDelta && valueDelta < delta)
-                delta = valueDelta;
+            values.forEach(function (otherValue) {
+                var valueDelta = Math.abs(value - otherValue);
+                if (valueDelta && valueDelta < delta)
+                    delta = valueDelta;
+            });
         });
         minimum -= minimumOffset;
         maximum += maximumOffset;
-        if (autoRelative)
-            this.relative = minimum < 0 && maximum > 0;
         var range = maximum - minimum;
         delta = Math.max(minimumDelta, delta);
-        delta = delta * (range / delta / targetDensity);
+        delta *= range / delta / targetDensity;
         if (delta >= range / 2)
             delta = range / 2;
+        if (autoRelative)
+            this.relative = minimum < 0 && maximum > 0;
         if (rounding) {
             var roundingFactor_1 = Math.pow(10, rounding);
             round = function (value) { return Math.round(value * roundingFactor_1) / roundingFactor_1; };
             delta = round(delta);
             var shiftedMinimum = Math.floor(minimum * roundingFactor_1) / roundingFactor_1;
+            shiftedMinimum !== minimum && minimum--;
             startOffset += minimum - shiftedMinimum;
             minimum = shiftedMinimum;
             range += startOffset;

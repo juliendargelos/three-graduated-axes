@@ -141,6 +141,8 @@ export class Axis implements AxisParameters {
   }: Partial<AxisGenerateParameters> = {}): void {
     this.reset()
 
+    const firstValue = values[0]
+
     let minimum = Infinity
     let maximum = -Infinity
     let delta = Infinity
@@ -151,22 +153,20 @@ export class Axis implements AxisParameters {
     values.forEach((value) => {
       if (value < minimum) minimum = value
       if (value > maximum) maximum = value
-
-      values.forEach((otherValue) => {
-        const valueDelta = Math.abs(value - otherValue)
-        if (valueDelta && valueDelta < delta) delta = valueDelta
-      })
+      const valueDelta = Math.abs(value - firstValue)
+      if (valueDelta && valueDelta < delta) delta = valueDelta
     })
 
     minimum -= minimumOffset
     maximum += maximumOffset
 
+    if (autoRelative) this.relative = minimum < 0 && maximum > 0
+
     let range = maximum - minimum
     delta = Math.max(minimumDelta, delta)
-    delta *= range / delta / targetDensity
+    delta = delta * (range / delta / targetDensity)
 
     if (delta >= range / 2) delta = range / 2
-    if (autoRelative) this.relative = minimum < 0 && maximum > 0
 
     if (rounding) {
       const roundingFactor = Math.pow(10, rounding)
@@ -176,12 +176,12 @@ export class Axis implements AxisParameters {
 
       delta = round(delta)
 
-      let shiftedMinimum = Math.floor(
+      const shiftedMinimum = Math.floor(
         minimum * roundingFactor
       ) / roundingFactor
 
-      shiftedMinimum !== minimum && minimum--
       startOffset += minimum - shiftedMinimum
+
       minimum = shiftedMinimum
       range += startOffset
     }
