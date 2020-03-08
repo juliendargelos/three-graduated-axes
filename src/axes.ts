@@ -2,14 +2,12 @@ import { Mesh, MeshBasicMaterial, Color, Vector2 } from 'three'
 import { Axis, AxisParameters, AxisGenerateParameters } from '~/axis'
 import { Labels, LabelsParameters } from '~/labels'
 import { Graduations } from '~/graduations'
-import { Container } from '~/container'
 
 export class Axes extends Mesh {
   public x: Axis
   public y: Axis
   public labels: Labels
   public graduations: Graduations
-  public container: Container = new Container()
 
   public constructor({
     x = {},
@@ -105,12 +103,10 @@ export class Axes extends Mesh {
 
   public generateGraduations(): void {
     this.graduations.generate(this.x, this.y)
-    this.container.resize(this.x, this.y)
   }
 
   public resizeGraduations(): void {
     this.graduations.resize(this.x, this.y)
-    this.container.resize(this.x, this.y)
   }
 
   public generateLabels(): void {

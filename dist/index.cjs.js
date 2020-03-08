@@ -86,8 +86,6 @@ function smallerDividerOf(value, maximum) {
 var Axis = /** @class */ (function () {
     function Axis(_a) {
         var orientation = _a.orientation, spacing = _a.spacing, _b = _a.size, size = _b === void 0 ? 10 : _b, _c = _a.labels, labels = _c === void 0 ? [] : _c, _d = _a.prefix, prefix = _d === void 0 ? '' : _d, _e = _a.suffix, suffix = _e === void 0 ? '' : _e, _f = _a.decimals, decimals = _f === void 0 ? undefined : _f, _g = _a.graduations, graduations = _g === void 0 ? 1 : _g, _h = _a.root, root = _h === void 0 ? false : _h, _j = _a.relative, relative = _j === void 0 ? false : _j, _k = _a.lineWidth, lineWidth = _k === void 0 ? 0.02 : _k, _l = _a.progress, progress = _l === void 0 ? 1 : _l, _m = _a.margin, margin = _m === void 0 ? 0.2 : _m, _o = _a.padding, padding = _o === void 0 ? 0 : _o, _p = _a.distance, distance = _p === void 0 ? 0 : _p;
-        this.minimumOffset = 0;
-        this.maximumOffset = 0;
         this.orientation = orientation;
         this.spacing = spacing;
         this.size = size;
@@ -140,6 +138,29 @@ var Axis = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Axis.prototype, "minimum", {
+        get: function () {
+            var label = this.labels[0];
+            return typeof label === 'number' ? label : parseFloat(label) || 0;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Axis.prototype, "maximum", {
+        get: function () {
+            var label = this.labels[this.labels.length - 1];
+            if (typeof label === 'number')
+                return label;
+            var maximum = parseFloat(label);
+            return isNaN(maximum) ? this.minimum + 1 : maximum;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Axis.prototype.position = function (value) {
+        var minimum = this.minimum;
+        return ((value - minimum) / (this.maximum - minimum) - 0.5) * this.size;
+    };
     Axis.prototype.generate = function (values, _a) {
         var _b = _a === void 0 ? {} : _a, _c = _b.labels, labels = _c === void 0 ? 4 : _c, _d = _b.decimals, decimals = _d === void 0 ? 2 : _d, _e = _b.labelsBasedDecimals, labelsBasedDecimals = _e === void 0 ? true : _e, _f = _b.root, root = _f === void 0 ? false : _f, _g = _b.relative, relative = _g === void 0 ? true : _g, _h = _b.minimumOffset, minimumOffset = _h === void 0 ? 0 : _h, _j = _b.maximumOffset, maximumOffset = _j === void 0 ? 0 : _j;
         this.reset();
@@ -181,14 +202,11 @@ var Axis = /** @class */ (function () {
         }
         var range = shiftedMaximum - shiftedMinimum;
         this.labels = [];
-        for (var graduation = 0; graduation < labels; graduation++) {
-            this.labels.push(ceilRelative(graduation / (labels - 1) * range + shiftedMinimum, decimals));
+        for (var label = 0; label < labels; label++) {
+            this.labels.push(ceilRelative(label / (labels - 1) * range + shiftedMinimum, decimals));
         }
-        this.minimumOffset = -(shiftedMinimum - minimum) / range;
-        this.maximumOffset = (shiftedMaximum - maximum) / range;
     };
     Axis.prototype.reset = function () {
-        this.minimumOffset = this.maximumOffset = 0;
         this.labels.splice(0);
         this.root = false;
         this.relative = false;
@@ -463,83 +481,11 @@ var Graduations = /** @class */ (function (_super) {
     return Graduations;
 }(three.BufferGeometry));
 
-var Container = /** @class */ (function (_super) {
-    __extends(Container, _super);
-    function Container(points) {
-        var _this = _super.call(this) || this;
-        _this._size = new three.Vector2();
-        if (points) {
-            var pointValues = points.map(function (_a, index) {
-                var x = _a.x, y = _a.y;
-                var pointValue = {
-                    x: parseFloat(x),
-                    y: parseFloat(y)
-                };
-                if (isNaN(pointValue.x))
-                    pointValue.x = index / (points.length - 1);
-                if (isNaN(pointValue.y))
-                    pointValue.y = index / (points.length - 1);
-                return pointValue;
-            });
-            _this.setFromPoints(pointValues);
-        }
-        return _this;
-    }
-    Object.defineProperty(Container.prototype, "size", {
-        get: function () {
-            return this.getSize(this._size);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Container.prototype.normalizePoint = function (point, target) {
-        if (target === void 0) { target = new three.Vector2(); }
-        return target
-            .subVectors(point, this.min)
-            .divide(this.size);
-    };
-    Container.prototype.interpolatePoint = function (point, container, target) {
-        if (target === void 0) { target = new three.Vector2(); }
-        return (container ? container.normalizePoint(point, target) : target)
-            .multiply(this.size)
-            .add(this.min);
-    };
-    Container.prototype.interpolatePoints = function (points, targets) {
-        var _this = this;
-        if (targets === void 0) { targets = points.map(function () { return new three.Vector2(); }); }
-        var container = new Container(points);
-        points.some(function (point, index) {
-            if (index >= targets.length)
-                return true;
-            var pointValue = {
-                x: parseFloat(point.x),
-                y: parseFloat(point.y)
-            };
-            if (isNaN(pointValue.x)) {
-                pointValue.x = index / (points.length - 1);
-            }
-            if (isNaN(pointValue.y)) {
-                pointValue.y = index / (points.length - 1);
-            }
-            _this.interpolatePoint(pointValue, container, targets[index]);
-        });
-        return targets;
-    };
-    Container.prototype.resize = function (x, y) {
-        var xHalfSize = x.size / 2;
-        var yHalfSize = y.size / 2;
-        this.min.set(x.minimumOffset * x.size - xHalfSize, y.minimumOffset * y.size - yHalfSize);
-        this.max.set(xHalfSize - x.maximumOffset * x.size, yHalfSize - y.maximumOffset * y.size);
-    };
-    return Container;
-}(three.Box2));
-
 var Axes = /** @class */ (function (_super) {
     __extends(Axes, _super);
     function Axes(_a) {
         var _b = _a === void 0 ? {} : _a, _c = _b.x, x = _c === void 0 ? {} : _c, _d = _b.y, y = _d === void 0 ? {} : _d, _e = _b.labels, labels = _e === void 0 ? {} : _e, _f = _b.opacity, opacity = _f === void 0 ? 1 : _f, _g = _b.color, color = _g === void 0 ? 0xffffff : _g, _h = _b.generate, generate = _h === void 0 ? true : _h;
         var _this = _super.call(this, new Graduations()) || this;
-        _this.container = new Container();
         _this.x = new Axis(__assign({}, x, { orientation: new three.Vector2(1, 0), spacing: new three.Vector2(1, -1) }));
         _this.y = new Axis(__assign({}, y, { orientation: new three.Vector2(0, 1), spacing: new three.Vector2(-1, 1) }));
         _this.graduations = _this.geometry;
@@ -613,11 +559,9 @@ var Axes = /** @class */ (function (_super) {
     };
     Axes.prototype.generateGraduations = function () {
         this.graduations.generate(this.x, this.y);
-        this.container.resize(this.x, this.y);
     };
     Axes.prototype.resizeGraduations = function () {
         this.graduations.resize(this.x, this.y);
-        this.container.resize(this.x, this.y);
     };
     Axes.prototype.generateLabels = function () {
         this.labels.generate(this.x, this.y);

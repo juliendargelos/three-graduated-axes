@@ -50,8 +50,6 @@ export class Axis implements AxisParameters {
   public padding: number
   public distance: number
   public rootPosition!: number
-  public minimumOffset: number = 0
-  public maximumOffset: number = 0
 
   public constructor({
     orientation,
@@ -124,6 +122,23 @@ export class Axis implements AxisParameters {
     this.updateRootPosition()
   }
 
+  public get minimum(): number {
+    const label = this.labels[0]
+    return typeof label === 'number' ? label : parseFloat(label) || 0
+  }
+
+  public get maximum(): number {
+    const label = this.labels[this.labels.length - 1]
+    if (typeof label === 'number') return label
+    const maximum = parseFloat(label)
+    return isNaN(maximum) ? this.minimum + 1 : maximum
+  }
+
+  public position(value: number): number {
+    const minimum = this.minimum
+    return ((value - minimum) / (this.maximum - minimum) - 0.5) * this.size
+  }
+
   public generate(values: number[], {
     labels = 4,
     decimals = 2,
@@ -177,19 +192,15 @@ export class Axis implements AxisParameters {
 
     this.labels = []
 
-    for (var graduation = 0; graduation < labels; graduation++) {
+    for (var label = 0; label < labels; label++) {
       this.labels.push(ceilRelative(
-        graduation / (labels - 1) * range + shiftedMinimum,
+        label / (labels - 1) * range + shiftedMinimum,
         decimals
       ))
     }
-
-    this.minimumOffset = -(shiftedMinimum - minimum) / range
-    this.maximumOffset = (shiftedMaximum - maximum) / range
   }
 
   public reset(): void {
-    this.minimumOffset = this.maximumOffset = 0
     this.labels.splice(0)
     this.root = false
     this.relative = false

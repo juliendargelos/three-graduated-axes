@@ -2,13 +2,11 @@ import { Mesh, Color } from 'three';
 import { Axis, AxisParameters, AxisGenerateParameters } from '~/axis';
 import { Labels, LabelsParameters } from '~/labels';
 import { Graduations } from '~/graduations';
-import { Container } from '~/container';
 export declare class Axes extends Mesh {
     x: Axis;
     y: Axis;
     labels: Labels;
     graduations: Graduations;
-    container: Container;
     constructor({ x, y, labels, opacity, color, generate }?: {
         x?: Partial<AxisParameters>;
         y?: Partial<AxisParameters>;

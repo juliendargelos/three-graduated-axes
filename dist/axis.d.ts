@@ -40,8 +40,6 @@ export declare class Axis implements AxisParameters {
     padding: number;
     distance: number;
     rootPosition: number;
-    minimumOffset: number;
-    maximumOffset: number;
     constructor({ orientation, spacing, size, labels, prefix, suffix, decimals, graduations, root, relative, lineWidth, progress, margin, padding, distance }: Partial<AxisParameters> & {
         orientation: Vector2;
         spacing: Vector2;
@@ -49,6 +47,9 @@ export declare class Axis implements AxisParameters {
     private updateRootPosition;
     labels: (number | string)[];
     relative: boolean;
+    readonly minimum: number;
+    readonly maximum: number;
+    position(value: number): number;
     generate(values: number[], { labels, decimals, labelsBasedDecimals, root, relative, minimumOffset, maximumOffset }?: Partial<AxisGenerateParameters>): void;
     reset(): void;
 }
