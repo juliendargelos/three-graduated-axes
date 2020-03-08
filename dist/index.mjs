@@ -41,11 +41,49 @@ var __assign = function() {
     return __assign.apply(this, arguments);
 };
 
+function floorRelative(value, decimals) {
+    if (decimals === void 0) { decimals = 0; }
+    if (decimals === undefined)
+        return value;
+    var factor = Math.pow(10, decimals);
+    return value > 0
+        ? Math.floor(value * factor) / factor
+        : Math.ceil(value * factor) / factor;
+}
+function ceilRelative(value, decimals) {
+    if (decimals === void 0) { decimals = 0; }
+    return -floorRelative(-value, decimals);
+}
+function roundStep(value, decimals, divider, direction) {
+    if (direction === void 0) { direction = 1; }
+    var step = 1 / Math.pow(divider, decimals);
+    var roundedValue;
+    if (direction > 0) {
+        roundedValue = Math.floor(value);
+        while (roundedValue < value)
+            roundedValue += step;
+    }
+    else {
+        roundedValue = Math.ceil(value);
+        while (roundedValue > value)
+            roundedValue -= step;
+    }
+    return roundedValue;
+}
+function smallerDividerOf(value, maximum) {
+    if (maximum === void 0) { maximum = 10; }
+    for (var divider = 2; divider < maximum; divider++) {
+        if (!(value % divider))
+            return divider;
+    }
+    return 0;
+}
+
 var Axis = /** @class */ (function () {
     function Axis(_a) {
         var orientation = _a.orientation, spacing = _a.spacing, _b = _a.size, size = _b === void 0 ? 10 : _b, _c = _a.labels, labels = _c === void 0 ? [] : _c, _d = _a.prefix, prefix = _d === void 0 ? '' : _d, _e = _a.suffix, suffix = _e === void 0 ? '' : _e, _f = _a.decimals, decimals = _f === void 0 ? undefined : _f, _g = _a.graduations, graduations = _g === void 0 ? 1 : _g, _h = _a.root, root = _h === void 0 ? false : _h, _j = _a.relative, relative = _j === void 0 ? false : _j, _k = _a.lineWidth, lineWidth = _k === void 0 ? 0.02 : _k, _l = _a.progress, progress = _l === void 0 ? 1 : _l, _m = _a.margin, margin = _m === void 0 ? 0.2 : _m, _o = _a.padding, padding = _o === void 0 ? 0 : _o, _p = _a.distance, distance = _p === void 0 ? 0 : _p;
-        this.startOffset = 0;
-        this.endOffset = 0;
+        this.minimumOffset = 0;
+        this.maximumOffset = 0;
         this.orientation = orientation;
         this.spacing = spacing;
         this.size = size;
@@ -62,19 +100,6 @@ var Axis = /** @class */ (function () {
         this.padding = padding;
         this.distance = distance;
     }
-    Axis.prototype.isPrime = function (number) {
-        for (var i = 2, s = Math.sqrt(number); i <= s; i++) {
-            if (number % i === 0)
-                return false;
-        }
-        return number > 1;
-    };
-    Axis.prototype.adjustDelta = function (delta, minimumDelta, range, targetDensity) {
-        var halfRange = range / 2;
-        delta = Math.max(minimumDelta, delta);
-        delta *= range / delta / targetDensity;
-        return delta >= halfRange ? halfRange : delta;
-    };
     Axis.prototype.updateRootPosition = function () {
         if (!this.relative) {
             this.rootPosition = 0;
@@ -112,77 +137,54 @@ var Axis = /** @class */ (function () {
         configurable: true
     });
     Axis.prototype.generate = function (values, _a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.targetDensity, targetDensity = _c === void 0 ? 4 : _c, _d = _b.minimumDelta, minimumDelta = _d === void 0 ? 1 : _d, _e = _b.rounding, rounding = _e === void 0 ? 2 : _e, _f = _b.avoidPrime, avoidPrime = _f === void 0 ? true : _f, _g = _b.includeZero, includeZero = _g === void 0 ? false : _g, _h = _b.autoRelative, autoRelative = _h === void 0 ? true : _h, _j = _b.minimumOffset, minimumOffset = _j === void 0 ? 0 : _j, _k = _b.maximumOffset, maximumOffset = _k === void 0 ? 0 : _k, 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _l = _b.symmetric // TODO
-        ; 
+        var _b = _a === void 0 ? {} : _a, _c = _b.labels, labels = _c === void 0 ? 4 : _c, _d = _b.decimals, decimals = _d === void 0 ? 2 : _d, _e = _b.labelsBasedDecimals, labelsBasedDecimals = _e === void 0 ? true : _e, _f = _b.root, root = _f === void 0 ? false : _f, _g = _b.relative, relative = _g === void 0 ? true : _g, _h = _b.minimumOffset, minimumOffset = _h === void 0 ? 0 : _h, _j = _b.maximumOffset, maximumOffset = _j === void 0 ? 0 : _j;
         this.reset();
-        var minimum = Infinity;
-        var maximum = -Infinity;
-        var baseDelta = Infinity;
-        var startOffset = 0;
-        var endOffset = 0;
-        var round = function (value) { return value; };
-        values.forEach(function (value) {
-            if (value < minimum)
-                minimum = value;
-            if (value > maximum)
-                maximum = value;
-            values.forEach(function (otherValue) {
-                var valueDelta = Math.abs(value - otherValue);
-                if (valueDelta && valueDelta < baseDelta)
-                    baseDelta = valueDelta;
-            });
-        });
-        minimum -= minimumOffset;
-        maximum += maximumOffset;
-        var range = maximum - minimum;
-        var delta = this.adjustDelta(baseDelta, minimumDelta, range, targetDensity);
-        if (autoRelative)
-            this.relative = minimum < 0 && maximum > 0;
-        if (rounding !== undefined) {
-            var roundingFactor_1 = Math.pow(10, rounding);
-            round = function (value) { return Math.round(value * roundingFactor_1) / roundingFactor_1; };
-            var shiftedMinimum = ~~(minimum * roundingFactor_1) / roundingFactor_1;
-            shiftedMinimum !== minimum && minimum--;
-            startOffset += minimum - shiftedMinimum;
-            minimum = shiftedMinimum;
-            range += startOffset;
-            delta = round(this.adjustDelta(baseDelta, minimumDelta, range, targetDensity));
+        var minimum = Math.min.apply(Math, values);
+        var maximum = Math.max.apply(Math, values);
+        var shiftedMinimum = minimum - minimumOffset;
+        var shiftedMaximum = maximum - maximumOffset;
+        if (relative) {
+            this.relative = shiftedMinimum < 0 && shiftedMaximum > 0;
         }
-        var baseAmount = range / delta + 1;
-        var amount = Math.ceil(baseAmount);
-        if (avoidPrime) {
-            while (this.isPrime(amount + 1))
-                amount++;
+        if (this.relative) {
+            shiftedMinimum = Math.min(shiftedMinimum, -shiftedMaximum);
+            shiftedMaximum = Math.max(-shiftedMinimum, shiftedMaximum);
+            if (!(labels % 2))
+                labels++;
         }
-        endOffset = (amount - baseAmount) * delta || 0;
-        maximum += endOffset;
-        range += endOffset;
-        if (includeZero || (autoRelative && this.relative)) {
-            var relativeOffset = Infinity;
-            for (var i = 0; relativeOffset && i < amount; i++) {
-                var value = minimum + i * delta;
-                if (Math.abs(value) < Math.abs(relativeOffset))
-                    relativeOffset = value;
+        else if (root) {
+            shiftedMinimum = Math.min(0, shiftedMinimum);
+            shiftedMaximum = Math.max(0, shiftedMaximum);
+        }
+        if (decimals !== undefined) {
+            if (labelsBasedDecimals) {
+                var divider = 0;
+                if (this.relative) {
+                    divider = 2;
+                }
+                else {
+                    for (labels; !divider; labels++) {
+                        divider = smallerDividerOf(labels);
+                    }
+                }
+                shiftedMinimum = roundStep(shiftedMinimum, decimals, divider, -1);
+                shiftedMaximum = roundStep(shiftedMaximum, decimals, divider, 1);
             }
-            if (relativeOffset < 0)
-                relativeOffset += delta;
-            minimum -= relativeOffset;
-            startOffset += relativeOffset;
-            range += relativeOffset;
-            delta = round(this.adjustDelta(baseDelta, minimumDelta, range, targetDensity));
+            else {
+                shiftedMinimum = floorRelative(shiftedMinimum, decimals);
+                shiftedMaximum = ceilRelative(shiftedMaximum, decimals);
+            }
         }
-        var labels = [];
-        for (var i = 0; i < amount; i++) {
-            labels.push(round(minimum + i * delta));
+        var range = shiftedMaximum - shiftedMinimum;
+        this.labels = [];
+        for (var graduation = 0; graduation < labels; graduation++) {
+            this.labels.push(ceilRelative(graduation / (labels - 1) * range + shiftedMinimum, decimals));
         }
-        this.startOffset = startOffset / range;
-        this.endOffset = endOffset / range;
-        this.labels = labels;
+        this.minimumOffset = -(shiftedMinimum - minimum) / range;
+        this.maximumOffset = (shiftedMaximum - maximum) / range;
     };
     Axis.prototype.reset = function () {
-        this.startOffset = this.endOffset = 0;
+        this.minimumOffset = this.maximumOffset = 0;
         this.labels.splice(0);
         this.root = false;
         this.relative = false;
@@ -522,8 +524,8 @@ var Container = /** @class */ (function (_super) {
     Container.prototype.resize = function (x, y) {
         var xHalfSize = x.size / 2;
         var yHalfSize = y.size / 2;
-        this.min.set(x.startOffset * x.size - xHalfSize, y.startOffset * y.size - yHalfSize);
-        this.max.set(xHalfSize - x.endOffset * x.size, yHalfSize - y.endOffset * y.size);
+        this.min.set(x.minimumOffset * x.size - xHalfSize, y.minimumOffset * y.size - yHalfSize);
+        this.max.set(xHalfSize - x.maximumOffset * x.size, yHalfSize - y.maximumOffset * y.size);
     };
     return Container;
 }(Box2));

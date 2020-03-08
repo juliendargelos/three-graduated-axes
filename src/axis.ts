@@ -1,5 +1,12 @@
 import { Vector2 } from 'three'
 
+import {
+  floorRelative,
+  ceilRelative,
+  roundStep,
+  smallerDividerOf
+} from '~/utils'
+
 export interface AxisParameters {
   size: number
   labels: (number | string)[]
@@ -17,13 +24,11 @@ export interface AxisParameters {
 }
 
 export interface AxisGenerateParameters {
-  targetDensity: number
-  minimumDelta: number
-  rounding: number
-  avoidPrime: boolean
-  includeZero: boolean
-  autoRelative: boolean
-  symmetric: boolean
+  labels: number
+  decimals: number
+  labelsBasedDecimals: boolean
+  root: boolean
+  relative: boolean
   minimumOffset: number
   maximumOffset: number
 }
@@ -45,8 +50,8 @@ export class Axis implements AxisParameters {
   public padding: number
   public distance: number
   public rootPosition!: number
-  public startOffset: number = 0
-  public endOffset: number = 0
+  public minimumOffset: number = 0
+  public maximumOffset: number = 0
 
   public constructor({
     orientation,
@@ -85,26 +90,6 @@ export class Axis implements AxisParameters {
     this.distance = distance
   }
 
-  private isPrime(number: number): boolean {
-    for (var i = 2, s = Math.sqrt(number); i <= s; i++) {
-      if (number % i === 0) return false
-    }
-
-    return number > 1
-  }
-
-  private adjustDelta(
-    delta: number,
-    minimumDelta: number,
-    range: number,
-    targetDensity: number
-  ): number {
-    const halfRange = range / 2
-    delta = Math.max(minimumDelta, delta)
-    delta *= range / delta / targetDensity
-    return delta >= halfRange ? halfRange : delta
-  }
-
   private updateRootPosition(): void {
     if (!this.relative) {
       this.rootPosition = 0
@@ -140,116 +125,71 @@ export class Axis implements AxisParameters {
   }
 
   public generate(values: number[], {
-    targetDensity = 4,
-    minimumDelta = 1,
-    rounding = 2,
-    avoidPrime = true,
-    includeZero = false,
-    autoRelative = true,
+    labels = 4,
+    decimals = 2,
+    labelsBasedDecimals = true,
+    root = false,
+    relative = true,
     minimumOffset = 0,
-    maximumOffset = 0,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    symmetric = false // TODO
+    maximumOffset = 0
   }: Partial<AxisGenerateParameters> = {}): void {
     this.reset()
 
-    let minimum = Infinity
-    let maximum = -Infinity
-    let baseDelta = Infinity
-    let startOffset = 0
-    let endOffset = 0
-    let round = (value: number): number => value
+    const minimum = Math.min(...values)
+    const maximum = Math.max(...values)
+    let shiftedMinimum = minimum - minimumOffset
+    let shiftedMaximum = maximum - maximumOffset
 
-    values.forEach((value) => {
-      if (value < minimum) minimum = value
-      if (value > maximum) maximum = value
-
-      values.forEach((otherValue) => {
-        const valueDelta = Math.abs(value - otherValue)
-        if (valueDelta && valueDelta < baseDelta) baseDelta = valueDelta
-      })
-    })
-
-    minimum -= minimumOffset
-    maximum += maximumOffset
-
-    let range = maximum - minimum
-    let delta = this.adjustDelta(
-      baseDelta,
-      minimumDelta,
-      range,
-      targetDensity
-    )
-
-    if (autoRelative) this.relative = minimum < 0 && maximum > 0
-
-    if (rounding !== undefined) {
-      const roundingFactor = Math.pow(10, rounding)
-      round = (value: number) => Math.round(
-        value * roundingFactor
-      ) / roundingFactor
-
-      let shiftedMinimum = ~~(
-        minimum * roundingFactor
-      ) / roundingFactor
-
-      shiftedMinimum !== minimum && minimum--
-      startOffset += minimum - shiftedMinimum
-      minimum = shiftedMinimum
-      range += startOffset
-      delta = round(this.adjustDelta(
-        baseDelta,
-        minimumDelta,
-        range,
-        targetDensity
-      ))
+    if (relative) {
+      this.relative = shiftedMinimum < 0 && shiftedMaximum > 0
     }
 
-    const baseAmount = range / delta + 1
-    let amount = Math.ceil(baseAmount)
-
-    if (avoidPrime) {
-      while (this.isPrime(amount + 1)) amount++
+    if (this.relative) {
+      shiftedMinimum = Math.min(shiftedMinimum, -shiftedMaximum)
+      shiftedMaximum = Math.max(-shiftedMinimum, shiftedMaximum)
+      if (!(labels % 2)) labels++
+    } else if (root) {
+      shiftedMinimum = Math.min(0, shiftedMinimum)
+      shiftedMaximum = Math.max(0, shiftedMaximum)
     }
 
-    endOffset = (amount - baseAmount) * delta || 0
-    maximum += endOffset
-    range += endOffset
+    if (decimals !== undefined) {
+      if (labelsBasedDecimals) {
+        let divider: number = 0
 
-    if (includeZero || (autoRelative && this.relative)) {
-      let relativeOffset = Infinity
+        if (this.relative) {
+          divider = 2
+        } else {
+          for (labels; !divider; labels++) {
+            divider = smallerDividerOf(labels)
+          }
+        }
 
-      for (var i = 0; relativeOffset && i < amount; i++) {
-        const value = minimum + i * delta
-        if (Math.abs(value) < Math.abs(relativeOffset)) relativeOffset = value
+        shiftedMinimum = roundStep(shiftedMinimum, decimals, divider, -1)
+        shiftedMaximum = roundStep(shiftedMaximum, decimals, divider, 1)
+      } else {
+        shiftedMinimum = floorRelative(shiftedMinimum, decimals)
+        shiftedMaximum = ceilRelative(shiftedMaximum, decimals)
       }
+    }
 
-      if (relativeOffset < 0) relativeOffset += delta
+    const range = shiftedMaximum - shiftedMinimum
 
-      minimum -= relativeOffset
-      startOffset += relativeOffset
-      range += relativeOffset
-      delta = round(this.adjustDelta(
-        baseDelta,
-        minimumDelta,
-        range,
-        targetDensity
+    this.labels = []
+
+    for (var graduation = 0; graduation < labels; graduation++) {
+      this.labels.push(ceilRelative(
+        graduation / (labels - 1) * range + shiftedMinimum,
+        decimals
       ))
     }
 
-    const labels: number[] = []
-
-    for (var i = 0; i < amount; i++) {
-      labels.push(round(minimum + i * delta))
-    }
-
-    this.startOffset = startOffset / range
-    this.endOffset = endOffset / range
-    this.labels = labels
+    this.minimumOffset = -(shiftedMinimum - minimum) / range
+    this.maximumOffset = (shiftedMaximum - maximum) / range
   }
 
   public reset(): void {
-    this.startOffset = this.endOffset = 0
+    this.minimumOffset = this.maximumOffset = 0
     this.labels.splice(0)
     this.root = false
     this.relative = false

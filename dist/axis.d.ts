@@ -15,13 +15,11 @@ export interface AxisParameters {
     distance: number;
 }
 export interface AxisGenerateParameters {
-    targetDensity: number;
-    minimumDelta: number;
-    rounding: number;
-    avoidPrime: boolean;
-    includeZero: boolean;
-    autoRelative: boolean;
-    symmetric: boolean;
+    labels: number;
+    decimals: number;
+    labelsBasedDecimals: boolean;
+    root: boolean;
+    relative: boolean;
     minimumOffset: number;
     maximumOffset: number;
 }
@@ -42,18 +40,16 @@ export declare class Axis implements AxisParameters {
     padding: number;
     distance: number;
     rootPosition: number;
-    startOffset: number;
-    endOffset: number;
+    minimumOffset: number;
+    maximumOffset: number;
     constructor({ orientation, spacing, size, labels, prefix, suffix, decimals, graduations, root, relative, lineWidth, progress, margin, padding, distance }: Partial<AxisParameters> & {
         orientation: Vector2;
         spacing: Vector2;
     });
-    private isPrime;
-    private adjustDelta;
     private updateRootPosition;
     labels: (number | string)[];
     relative: boolean;
-    generate(values: number[], { targetDensity, minimumDelta, rounding, avoidPrime, includeZero, autoRelative, minimumOffset, maximumOffset, symmetric }?: Partial<AxisGenerateParameters>): void;
+    generate(values: number[], { labels, decimals, labelsBasedDecimals, root, relative, minimumOffset, maximumOffset }?: Partial<AxisGenerateParameters>): void;
     reset(): void;
 }
 //# sourceMappingURL=axis.d.ts.map

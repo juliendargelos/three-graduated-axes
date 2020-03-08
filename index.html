@@ -77,11 +77,14 @@
       let values
 
       function generateValues(options) {
+        const range = Math.random() > 0.5 ? 50 : 2
+        const relativeX = Math.random() > 0.5
+        const relativeY = Math.random() > 0.5
         values = new Array(~~(Math.random() * 40) + 10).fill(null)
 
         values.forEach((_, index) => {
-          const x = Math.random() * 50 - 25
-          const y = Math.random() * 50 - 25
+          const x = Math.random() * range + (relativeX ? -range / 2 : 0)
+          const y = Math.random() * range + (relativeY ? -range / 2 : 0)
 
           values[index] = {
             x: Math.random() > 0.5 ? ~~x : x,
@@ -89,13 +92,11 @@
           }
         })
 
-        const r = n => n // Math.round(n * 100) / 100
-        console.log('value', values.map(({ x, y }) => [r(x), r(y)]))
-        console.log('x', Math.min(...values.map(({ x }) => r(x))), Math.max(...values.map(({ x }) => r(x))))
-        console.log('y', Math.min(...values.map(({ y }) => r(y))), Math.max(...values.map(({ y }) => r(y))))
-
         values.sort(({ x: a }, { x: b }) => a - b)
-        axes.generate(values, options)
+        axes.generate(values, {
+          x: { labels: ~~(Math.random() * 6) + 4 },
+          y: { labels: ~~(Math.random() * 6) + 4 }
+        })
         generateCurve()
       }
 

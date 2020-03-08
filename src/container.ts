@@ -80,13 +80,13 @@ export class Container extends Box2 {
     const yHalfSize = y.size / 2
 
     this.min.set(
-      x.startOffset * x.size - xHalfSize,
-      y.startOffset * y.size - yHalfSize
+      x.minimumOffset * x.size - xHalfSize,
+      y.minimumOffset * y.size - yHalfSize
     )
 
     this.max.set(
-      xHalfSize - x.endOffset * x.size,
-      yHalfSize - y.endOffset * y.size
+      xHalfSize - x.maximumOffset * x.size,
+      yHalfSize - y.maximumOffset * y.size
     )
   }
 }
