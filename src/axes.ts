@@ -46,12 +46,18 @@ export class Axes extends Mesh {
     generate && this.generate()
   }
 
-  public get visible(): boolean {
-    return this.labels.visible
+  public show(): void {
+    this.visible =
+    this.labels.visible = true
   }
 
-  public set visible(visible: boolean) {
-    if (this.labels) this.labels.visible = visible
+  public hide(): void {
+    this.visible =
+    this.labels.visible = false
+  }
+
+  public toggle(toggle: boolean = !this.visible): void {
+    toggle ? this.show() : this.hide()
   }
 
   public get color(): Color {

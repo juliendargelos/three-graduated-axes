@@ -496,17 +496,18 @@ var Axes = /** @class */ (function (_super) {
         generate && _this.generate();
         return _this;
     }
-    Object.defineProperty(Axes.prototype, "visible", {
-        get: function () {
-            return this.labels.visible;
-        },
-        set: function (visible) {
-            if (this.labels)
-                this.labels.visible = visible;
-        },
-        enumerable: true,
-        configurable: true
-    });
+    Axes.prototype.show = function () {
+        this.visible =
+            this.labels.visible = true;
+    };
+    Axes.prototype.hide = function () {
+        this.visible =
+            this.labels.visible = false;
+    };
+    Axes.prototype.toggle = function (toggle) {
+        if (toggle === void 0) { toggle = !this.visible; }
+        toggle ? this.show() : this.hide();
+    };
     Object.defineProperty(Axes.prototype, "color", {
         get: function () {
             return this.material.color;

@@ -15,7 +15,9 @@ export declare class Axes extends Mesh {
         color?: Color | number | string;
         generate?: boolean;
     });
-    visible: boolean;
+    show(): void;
+    hide(): void;
+    toggle(toggle?: boolean): void;
     color: Color;
     opacity: number;
     generate(values?: ({
