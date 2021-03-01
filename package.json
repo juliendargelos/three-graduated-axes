@@ -20,7 +20,7 @@
     "@types/webgl2": "^0.0.5"
   },
   "peerDependencies": {
-    "three": "^0.112.1"
+    "three": "^0.125.0"
   },
   "devDependencies": {
     "@types/cannon": "^0.1.4",
@@ -40,7 +40,7 @@
     "rollup-plugin-terser": "^5.2.0",
     "rollup-plugin-typescript2": "^0.25.3",
     "serve": "^11.3.0",
-    "three": "^0.112.1",
+    "three": "^0.125.0",
     "typescript": "3.5.1"
   }
 }
